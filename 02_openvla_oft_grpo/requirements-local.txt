@@ -1,0 +1,9 @@
+# Local-dev requirements (Mac arm64 / MPS). Heavy sim/train deps live on GPU.
+numpy
+pillow
+matplotlib
+einops
+huggingface_hub
+transformers>=4.44
+safetensors
+# lerobot + smolvla installed separately (see README): pip install "lerobot[smolvla]"

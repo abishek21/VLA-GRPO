@@ -1,0 +1,31 @@
+# ---- python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# ---- ML artifacts (never commit big files) ----
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+*.bin
+runs/
+checkpoints/
+wandb/
+outputs/
+*.mp4
+*.pkl
+
+# ---- datasets ----
+data/
+LIBERO/
+modified_libero_rlds/
+*.hdf5
+
+# ---- os / editor ----
+.DS_Store
+.idea/
+.vscode/
