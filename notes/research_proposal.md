@@ -351,6 +351,28 @@ tractable action likelihood. Options to evaluate at Gate G2:
 GRPO loop over action chunks); revisit Option 2 if the Gaussian head degrades
 the base policy too much.
 
+**2026-08-29 — Gaussian-head prototype + 6 design refinements (local, MPS):**
+`02_openvla_oft_grpo/proto_gaussian_head.py` validates the continuous-action
+log-prob / GRPO-ratio math on Mac. Key design decisions captured (from review):
+1. **It is a NEW policy.** `log p_gaussian(A|o)`, NOT SmolVLA's flow log-prob.
+   For real post-training, **initialize the head's mean to match the flow
+   policy** (distill `mu(feat) ≈ predict_action_chunk(o)`, or residual
+   `a = flow_action + noise`) — otherwise we discard SFT competence and the KL
+   reference is garbage.
+2. **Do not flatten** the `[T, D]` chunk. Summing `T*D` per-dim log-ratios makes
+   `rho` explode (same lesson as the sequence-summed KL blow-up). Keep `[B,T,D]`;
+   expose **per-step** log-ratio `[B,T]` to inspect/aggregate deliberately.
+3. **Temporal correlation** is ignored by a diagonal Gaussian (independent noise
+   per step → jittery exploration). Fine for prototype; revisit for robot RL.
+4. **tanh-squash + Jacobian** so sampled == executed action in `[-1,1]` envs;
+   plain clamp would make `log_prob` inconsistent and the ratio wrong.
+5. **The GRPO group in robotics = G FULL rollouts** from the same initial state;
+   observations **diverge** after the first chunk and each trajectory has many
+   decisions. The single-obs bandit demo only validates the log-prob math.
+6. **Advantage normalization**: use population std (`unbiased=False`) and handle
+   zero-variance groups explicitly (all-success or all-fail → `A = 0`), which is
+   the common failure mode for sparse binary robot rewards.
+
 ### To-do
 
 1. ☑ Confirm model choice — **SmolVLA** (done); π0.5 available for later.
