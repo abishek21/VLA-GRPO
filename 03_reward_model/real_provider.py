@@ -31,8 +31,10 @@ import torch
 from build_event_labels import RATE_HZ  # 10 Hz
 
 TARGET_HZ = RATE_HZ
-HAND_DIM = 63          # e.g. 21 keypoints x 3 (per hand) -> we use both hands? see below
-PER_HAND_DIM = HAND_DIM  # left and right each mapped to this, then we choose/concat
+NUM_JOINTS = 26            # HoloLens hand model joints
+JOINT_STRIDE = 17         # per joint: [valid, 16 matrix values (row-major 4x4)]
+PER_HAND_DIM = NUM_JOINTS * 3          # xyz per joint = 78
+HAND_DIM = PER_HAND_DIM * 2            # left + right = 156
 
 
 def session_dir(root: str, session_name: str) -> str:
@@ -81,17 +83,27 @@ def _decode_video_10hz(mp4_path: str, out_h: int, out_w: int):
 # Hand pose -> vector per frame at TARGET_HZ
 # ----------------------------------------------------------------------
 def parse_hand_line(line: str) -> np.ndarray:
-    """Parse one row of a *_sync.txt hand file into a float vector.
-    Generic: split on commas/whitespace, keep numeric tokens. Adjust after we
-    confirm the exact columns (e.g. leading timestamp, joint xyz triplets)."""
+    """Parse one row of a HoloAssist *_sync.txt hand file into 26 joint XYZ
+    positions (78 numbers). Verified format:
+        col 0: timestamp, col 1: frame id, then 26 joints x 17 values, where
+        each joint block = [valid, 4x4 row-major pose matrix]. The translation
+        (position) sits at matrix indices 3,7,11 -> row-major (tx,ty,tz).
+    Returns [78] float32 (26*3); zeros if the row is malformed."""
     toks = line.replace(",", " ").split()
+    # numeric parse
     vals = []
     for t in toks:
         try:
             vals.append(float(t))
         except ValueError:
-            continue
-    return np.asarray(vals, np.float32)
+            vals.append(0.0)
+    vals = np.asarray(vals, np.float32)
+    if vals.size < 2 + NUM_JOINTS * JOINT_STRIDE:
+        return np.zeros(PER_HAND_DIM, np.float32)
+    body = vals[2:2 + NUM_JOINTS * JOINT_STRIDE].reshape(NUM_JOINTS, JOINT_STRIDE)
+    # per joint: [valid, m0..m15]; translation = m3, m7, m11 (row-major 4x4)
+    xyz = body[:, [1 + 3, 1 + 7, 1 + 11]]         # [26, 3]
+    return xyz.reshape(-1).astype(np.float32)     # [78]
 
 
 @lru_cache(maxsize=8)
