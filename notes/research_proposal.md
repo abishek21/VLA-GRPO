@@ -312,7 +312,8 @@ strong paper.
 
 | Risk | Likelihood | Mitigation |
 |------|-----------|-----------|
-| Interaction events not labeled in dataset | high | verify labels first (Step 3 gate); scope hand-labeling early; start with contact/grasp which are easiest |
+| ~~Interaction events not labeled in dataset~~ **RESOLVED** | ~~high~~ → low | HoloAssist has per-segment timestamped Action-Correctness (failure) + corrected-by (recovery) + verb/noun (contact/grasp/release). See findings log 2026-08-29. |
+| Class imbalance (failures ~5%) | high | weighted BCE / large `w_failure`; focal loss; oversample wrong-action segments |
 | Embodiment gap kills transfer | medium | measure it as a *result*, not a failure; frame paper around characterizing it |
 | Reward hacking dominates | medium | it's a *feature* — analyze it (your strength); use sim oracle to quantify |
 | 3-month timeline slips | high | front-load Gates G1/G2; use off-the-shelf model + reward components; keep full-data scaling as "future work" |
@@ -372,6 +373,54 @@ log-prob / GRPO-ratio math on Mac. Key design decisions captured (from review):
 6. **Advantage normalization**: use population std (`unbiased=False`) and handle
    zero-variance groups explicitly (all-success or all-fail → `A = 0`), which is
    the common failure mode for sparse binary robot rewards.
+
+**2026-08-29 — Dataset audit (Gate G3 prerequisite; de-risks the #1 risk):**
+Compared candidate egocentric datasets for interaction-event labels.
+- **HoloAssist (CHOSEN to start):** 169h egocentric *physical manipulation*.
+  Ships **pre-computed hand pose** (219 GB) — no estimator needed — plus RGB,
+  depth, gaze, head pose, IMU. Critically, it has a **mistake-detection**
+  benchmark and **intervention/correction** annotations → direct scaffolding for
+  our hardest labels (`failure`, `recovery`). Permissive CDLAv2 license, direct
+  download (no gated approval). Labels JSON is only **111 MB** →
+  `data-annotation-trainval-v1_1.json`, inspectable locally.
+- **EgoExo4D:** 1286h, multi-view, hand-pose + keystep + proficiency benchmarks;
+  organized around *keysteps/skill*, not explicit contact/failure. Good for
+  later cross-embodiment breadth; gated license (2-day approval, re-sign).
+- **Event → HoloAssist mapping:** contact/grasp/release = auto/weak-label from
+  hand pose + object proximity/motion; **failure = adapt mistake-detection
+  labels; recovery = adapt intervention/correction labels** (the pre-existing
+  annotation layer is the key win).
+- **Open verification (next local action):** download the 111 MB labels JSON and
+  inspect the *granularity* + taxonomy of the mistake/intervention labels
+  (per-frame vs per-clip?) before committing. No GPU needed.
+
+**2026-08-29 — HoloAssist label inspection DONE (#1 risk RESOLVED):**
+Inspected `data-annotation-trainval-v1_1.json` (1758 videos, 195k events).
+Structure: each video has time-stamped `events` (`type="range"`, start/end
+seconds) → **per-segment granularity, fillable to per-timestep labels.** The
+**149,253 "Fine grained action"** events each carry:
+- **Action Correctness**: `Correct Action` (141,691) / `Wrong Action, corrected
+  by instructor` (4,052) / `Wrong Action, corrected by student` (3,061) /
+  `Wrong Action, not corrected` (92) / otherwise (357).
+  → this IS our **failure** label, and the "corrected by" split IS our
+  **recovery** signal (self vs assisted vs none).
+- **Incorrect Action Explanation** (free text): dominated by **DROPS**
+  ("drops the hex socket head", "accidentally dropped the screw") = grasp
+  failures — semantically the SAME event as a robot grasp failure
+  (cross-embodiment bridge in the data).
+- **Verb** (grab/insert/place/withdraw/screw...), **Noun** (objects),
+  **adverbial** (right/left hand) → weak-derive contact/grasp/release + align
+  to the hand-pose stream.
+
+**Consequence:** the reward-model's hardest labels (failure/recovery) are
+**pre-annotated, timestamped, and manipulation-relevant**. Biggest project risk
+is resolved. Caveat (as predicted): class imbalance — wrong actions are ~5% of
+fine-grained actions → weighted BCE / large `w_failure` is required; only 92
+"not corrected" pure failures (recovery is the common case, which suits our
+failure/recovery focus).
+
+**Next:** map HoloAssist events → our event tensor `e_t`, align with the
+hand-pose stream, and build the per-timestep label pipeline (Step 3 / Gate G3).
 
 ### To-do
 

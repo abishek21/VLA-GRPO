@@ -1,0 +1,2112 @@
+{
+  "rank_by": "n_wrong",
+  "task_substr": null,
+  "num_videos": 60,
+  "est_download_gb": 22.6,
+  "total_wrong_actions": 1305,
+  "total_recoveries": 1302,
+  "video_names": [
+    "z057-june-28-22-rashult_assemble",
+    "z032-june-22-22-dslr",
+    "z017-june-20-22-rashult_assemble",
+    "z136-aug-13-22-gopro",
+    "z035-june-23-22-rashult_assemble",
+    "z154-aug-26-22-rashult_assemble",
+    "z136-aug-13-22-rashult_assemble",
+    "z159-aug-28-22-rashult_assemble",
+    "z062-june-29-22-marius_assemble",
+    "z028-june-22-22-marius_disassemble",
+    "z185-sep-09-22-marius_assemble",
+    "z009-june-15-22-knarrevik_assemble",
+    "z062-june-29-22-rashult_disassemble",
+    "z092-july-11-22-gopro",
+    "z131-aug-11-22-rashult_assemble",
+    "z106-july-14-22-rashult_assemble",
+    "z173-sep-04-22-knarrevik_assemble",
+    "z067-june-29-22-knarrevik_assemble",
+    "z015-june-17-22-marius_assemble",
+    "z014-june-17-22-gopro",
+    "z145-aug-18-22-gopro",
+    "z031-june-22-22-knarrevik_assemble",
+    "z104-july-14-22-gopro",
+    "z153-aug-25-22-rashult_assemble",
+    "z027-june-22-22-knarrevik_assemble",
+    "z065-june-29-22-dslr",
+    "z157-aug-27-22-rashult_assemble",
+    "z185-sep-09-22-gladom_assemble",
+    "z069-june-29-22-marius_assemble",
+    "R087-27July-GoPro",
+    "z062-june-29-22-rashult_assemble",
+    "z053-june-27-22-rashult_assemble",
+    "z079-july-05-22-knarrevik_assemble",
+    "z178-sep-05-22-knarrevik_assemble",
+    "z051-june-27-22-marius_assemble",
+    "z160-aug-29-22-switch",
+    "z175-sep-05-22-gopro",
+    "z086-july-07-22-marius_assemble",
+    "z195-sep-17-22-nespresso",
+    "z127-aug-10-22-dslr",
+    "z038-june-23-22-rashult_assemble",
+    "z010-june-16-22-knarrevik_assemble",
+    "z077-july-01-22-rashult_assemble",
+    "z068-june-29-22-rashult_assemble",
+    "z178-sep-05-22-gladom_assemble",
+    "z129-aug-11-22-gopro",
+    "z136-aug-13-22-dslr",
+    "z019-june-20-22-knarrevik_assemble",
+    "z032-june-22-22-knarrevik_assemble",
+    "z020-june-20-22-knarrevik_assemble",
+    "z154-aug-26-22-rashult_disassemble",
+    "z183-sep-08-22-switch",
+    "z051-june-27-22-rashult_assemble",
+    "z201-sep-22-22-rashult_assemble",
+    "z093-july-11-22-rashult_assemble",
+    "z075-july-01-22-rashult_assemble",
+    "z068-june-29-22-marius_assemble",
+    "z150-aug-22-22-gopro",
+    "z186-sep-09-22-gladom_assemble",
+    "z031-june-22-22-switch"
+  ],
+  "videos": [
+    {
+      "video_name": "z057-june-28-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1111.0,
+      "n_fine_actions": 590,
+      "n_wrong": 39,
+      "n_recovery_student": 10,
+      "n_recovery_instructor": 29,
+      "n_not_corrected": 0,
+      "n_drop_failures": 5,
+      "est_size_mb": 664.4,
+      "top_verbs": [
+        [
+          "grab",
+          109
+        ],
+        [
+          "insert",
+          85
+        ],
+        [
+          "place",
+          59
+        ],
+        [
+          "screw",
+          55
+        ],
+        [
+          "hold",
+          51
+        ]
+      ]
+    },
+    {
+      "video_name": "z032-june-22-22-dslr",
+      "task_type": "setup camera",
+      "duration_s": 325.0,
+      "n_fine_actions": 145,
+      "n_wrong": 36,
+      "n_recovery_student": 23,
+      "n_recovery_instructor": 13,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 194.3,
+      "top_verbs": [
+        [
+          "rotate",
+          28
+        ],
+        [
+          "press",
+          27
+        ],
+        [
+          "inspect",
+          15
+        ],
+        [
+          "withdraw",
+          14
+        ],
+        [
+          "insert",
+          12
+        ]
+      ]
+    },
+    {
+      "video_name": "z017-june-20-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1376.0,
+      "n_fine_actions": 346,
+      "n_wrong": 35,
+      "n_recovery_student": 9,
+      "n_recovery_instructor": 26,
+      "n_not_corrected": 0,
+      "n_drop_failures": 2,
+      "est_size_mb": 822.8,
+      "top_verbs": [
+        [
+          "grab",
+          67
+        ],
+        [
+          "approach",
+          41
+        ],
+        [
+          "lift",
+          41
+        ],
+        [
+          "insert",
+          40
+        ],
+        [
+          "place",
+          36
+        ]
+      ]
+    },
+    {
+      "video_name": "z136-aug-13-22-gopro",
+      "task_type": "setup gopro",
+      "duration_s": 367.0,
+      "n_fine_actions": 152,
+      "n_wrong": 35,
+      "n_recovery_student": 26,
+      "n_recovery_instructor": 9,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 219.5,
+      "top_verbs": [
+        [
+          "rotate",
+          33
+        ],
+        [
+          "grab",
+          18
+        ],
+        [
+          "place",
+          18
+        ],
+        [
+          "insert",
+          18
+        ],
+        [
+          "inspect",
+          11
+        ]
+      ]
+    },
+    {
+      "video_name": "z035-june-23-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1302.0,
+      "n_fine_actions": 521,
+      "n_wrong": 33,
+      "n_recovery_student": 6,
+      "n_recovery_instructor": 27,
+      "n_not_corrected": 0,
+      "n_drop_failures": 6,
+      "est_size_mb": 778.6,
+      "top_verbs": [
+        [
+          "grab",
+          117
+        ],
+        [
+          "insert",
+          91
+        ],
+        [
+          "screw",
+          69
+        ],
+        [
+          "withdraw",
+          60
+        ],
+        [
+          "place",
+          36
+        ]
+      ]
+    },
+    {
+      "video_name": "z154-aug-26-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 902.0,
+      "n_fine_actions": 403,
+      "n_wrong": 32,
+      "n_recovery_student": 12,
+      "n_recovery_instructor": 19,
+      "n_not_corrected": 1,
+      "n_drop_failures": 3,
+      "est_size_mb": 539.4,
+      "top_verbs": [
+        [
+          "insert",
+          89
+        ],
+        [
+          "screw",
+          70
+        ],
+        [
+          "grab",
+          67
+        ],
+        [
+          "withdraw",
+          53
+        ],
+        [
+          "place",
+          25
+        ]
+      ]
+    },
+    {
+      "video_name": "z136-aug-13-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 720.0,
+      "n_fine_actions": 351,
+      "n_wrong": 32,
+      "n_recovery_student": 9,
+      "n_recovery_instructor": 23,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 430.6,
+      "top_verbs": [
+        [
+          "grab",
+          87
+        ],
+        [
+          "approach",
+          77
+        ],
+        [
+          "insert",
+          50
+        ],
+        [
+          "align",
+          43
+        ],
+        [
+          "place",
+          22
+        ]
+      ]
+    },
+    {
+      "video_name": "z159-aug-28-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1203.0,
+      "n_fine_actions": 414,
+      "n_wrong": 28,
+      "n_recovery_student": 0,
+      "n_recovery_instructor": 28,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 719.4,
+      "top_verbs": [
+        [
+          "grab",
+          83
+        ],
+        [
+          "insert",
+          60
+        ],
+        [
+          "rotate",
+          55
+        ],
+        [
+          "screw",
+          43
+        ],
+        [
+          "hold",
+          38
+        ]
+      ]
+    },
+    {
+      "video_name": "z062-june-29-22-marius_assemble",
+      "task_type": "assemble stool",
+      "duration_s": 358.0,
+      "n_fine_actions": 126,
+      "n_wrong": 27,
+      "n_recovery_student": 6,
+      "n_recovery_instructor": 21,
+      "n_not_corrected": 0,
+      "n_drop_failures": 3,
+      "est_size_mb": 214.1,
+      "top_verbs": [
+        [
+          "grab",
+          26
+        ],
+        [
+          "insert",
+          23
+        ],
+        [
+          "withdraw",
+          15
+        ],
+        [
+          "place",
+          14
+        ],
+        [
+          "rotate",
+          11
+        ]
+      ]
+    },
+    {
+      "video_name": "z028-june-22-22-marius_disassemble",
+      "task_type": "disassemble stool",
+      "duration_s": 358.0,
+      "n_fine_actions": 122,
+      "n_wrong": 27,
+      "n_recovery_student": 1,
+      "n_recovery_instructor": 26,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 214.1,
+      "top_verbs": [
+        [
+          "grab",
+          31
+        ],
+        [
+          "insert",
+          22
+        ],
+        [
+          "place",
+          19
+        ],
+        [
+          "screw",
+          9
+        ],
+        [
+          "drop",
+          8
+        ]
+      ]
+    },
+    {
+      "video_name": "z185-sep-09-22-marius_assemble",
+      "task_type": "assemble stool",
+      "duration_s": 479.0,
+      "n_fine_actions": 120,
+      "n_wrong": 26,
+      "n_recovery_student": 5,
+      "n_recovery_instructor": 21,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 286.4,
+      "top_verbs": [
+        [
+          "grab",
+          30
+        ],
+        [
+          "align",
+          20
+        ],
+        [
+          "place",
+          13
+        ],
+        [
+          "insert",
+          12
+        ],
+        [
+          "rotate",
+          10
+        ]
+      ]
+    },
+    {
+      "video_name": "z009-june-15-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 542.0,
+      "n_fine_actions": 303,
+      "n_wrong": 25,
+      "n_recovery_student": 9,
+      "n_recovery_instructor": 16,
+      "n_not_corrected": 0,
+      "n_drop_failures": 2,
+      "est_size_mb": 324.1,
+      "top_verbs": [
+        [
+          "insert",
+          55
+        ],
+        [
+          "screw",
+          50
+        ],
+        [
+          "grab",
+          46
+        ],
+        [
+          "approach",
+          44
+        ],
+        [
+          "withdraw",
+          32
+        ]
+      ]
+    },
+    {
+      "video_name": "z062-june-29-22-rashult_disassemble",
+      "task_type": "disassemble utility cart",
+      "duration_s": 506.0,
+      "n_fine_actions": 204,
+      "n_wrong": 25,
+      "n_recovery_student": 4,
+      "n_recovery_instructor": 21,
+      "n_not_corrected": 0,
+      "n_drop_failures": 4,
+      "est_size_mb": 302.6,
+      "top_verbs": [
+        [
+          "place",
+          40
+        ],
+        [
+          "grab",
+          38
+        ],
+        [
+          "unscrew",
+          28
+        ],
+        [
+          "disassemble",
+          24
+        ],
+        [
+          "withdraw",
+          19
+        ]
+      ]
+    },
+    {
+      "video_name": "z092-july-11-22-gopro",
+      "task_type": "setup gopro",
+      "duration_s": 477.0,
+      "n_fine_actions": 150,
+      "n_wrong": 25,
+      "n_recovery_student": 25,
+      "n_recovery_instructor": 0,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 285.2,
+      "top_verbs": [
+        [
+          "place",
+          26
+        ],
+        [
+          "grab",
+          16
+        ],
+        [
+          "pull",
+          14
+        ],
+        [
+          "inspect",
+          10
+        ],
+        [
+          "screw",
+          9
+        ]
+      ]
+    },
+    {
+      "video_name": "z131-aug-11-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1146.0,
+      "n_fine_actions": 232,
+      "n_wrong": 24,
+      "n_recovery_student": 5,
+      "n_recovery_instructor": 19,
+      "n_not_corrected": 0,
+      "n_drop_failures": 4,
+      "est_size_mb": 685.3,
+      "top_verbs": [
+        [
+          "grab",
+          63
+        ],
+        [
+          "screw",
+          35
+        ],
+        [
+          "insert",
+          33
+        ],
+        [
+          "place",
+          27
+        ],
+        [
+          "align",
+          19
+        ]
+      ]
+    },
+    {
+      "video_name": "z106-july-14-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 777.0,
+      "n_fine_actions": 99,
+      "n_wrong": 24,
+      "n_recovery_student": 0,
+      "n_recovery_instructor": 24,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 464.6,
+      "top_verbs": [
+        [
+          "grab",
+          41
+        ],
+        [
+          "screw",
+          26
+        ],
+        [
+          "place",
+          8
+        ],
+        [
+          "assemble",
+          8
+        ],
+        [
+          "insert",
+          5
+        ]
+      ]
+    },
+    {
+      "video_name": "z173-sep-04-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 619.0,
+      "n_fine_actions": 264,
+      "n_wrong": 23,
+      "n_recovery_student": 21,
+      "n_recovery_instructor": 2,
+      "n_not_corrected": 0,
+      "n_drop_failures": 21,
+      "est_size_mb": 370.2,
+      "top_verbs": [
+        [
+          "insert",
+          75
+        ],
+        [
+          "grab",
+          53
+        ],
+        [
+          "screw",
+          53
+        ],
+        [
+          "drop",
+          21
+        ],
+        [
+          "rotate",
+          16
+        ]
+      ]
+    },
+    {
+      "video_name": "z067-june-29-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 564.0,
+      "n_fine_actions": 190,
+      "n_wrong": 23,
+      "n_recovery_student": 2,
+      "n_recovery_instructor": 21,
+      "n_not_corrected": 0,
+      "n_drop_failures": 2,
+      "est_size_mb": 337.3,
+      "top_verbs": [
+        [
+          "insert",
+          42
+        ],
+        [
+          "rotate",
+          33
+        ],
+        [
+          "grab",
+          32
+        ],
+        [
+          "withdraw",
+          21
+        ],
+        [
+          "screw",
+          18
+        ]
+      ]
+    },
+    {
+      "video_name": "z015-june-17-22-marius_assemble",
+      "task_type": "assemble stool",
+      "duration_s": 530.0,
+      "n_fine_actions": 171,
+      "n_wrong": 23,
+      "n_recovery_student": 17,
+      "n_recovery_instructor": 6,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 316.9,
+      "top_verbs": [
+        [
+          "insert",
+          24
+        ],
+        [
+          "hold",
+          21
+        ],
+        [
+          "grab",
+          20
+        ],
+        [
+          "withdraw",
+          18
+        ],
+        [
+          "screw",
+          16
+        ]
+      ]
+    },
+    {
+      "video_name": "z014-june-17-22-gopro",
+      "task_type": "setup gopro",
+      "duration_s": 555.0,
+      "n_fine_actions": 169,
+      "n_wrong": 23,
+      "n_recovery_student": 23,
+      "n_recovery_instructor": 0,
+      "n_not_corrected": 0,
+      "n_drop_failures": 2,
+      "est_size_mb": 331.9,
+      "top_verbs": [
+        [
+          "place",
+          26
+        ],
+        [
+          "grab",
+          24
+        ],
+        [
+          "flip",
+          17
+        ],
+        [
+          "insert",
+          12
+        ],
+        [
+          "open",
+          10
+        ]
+      ]
+    },
+    {
+      "video_name": "z145-aug-18-22-gopro",
+      "task_type": "setup gopro",
+      "duration_s": 391.0,
+      "n_fine_actions": 155,
+      "n_wrong": 23,
+      "n_recovery_student": 19,
+      "n_recovery_instructor": 4,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 233.8,
+      "top_verbs": [
+        [
+          "grab",
+          19
+        ],
+        [
+          "inspect",
+          15
+        ],
+        [
+          "lift",
+          14
+        ],
+        [
+          "place",
+          13
+        ],
+        [
+          "rotate",
+          12
+        ]
+      ]
+    },
+    {
+      "video_name": "z031-june-22-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 753.0,
+      "n_fine_actions": 395,
+      "n_wrong": 22,
+      "n_recovery_student": 9,
+      "n_recovery_instructor": 13,
+      "n_not_corrected": 0,
+      "n_drop_failures": 3,
+      "est_size_mb": 450.3,
+      "top_verbs": [
+        [
+          "screw",
+          68
+        ],
+        [
+          "insert",
+          66
+        ],
+        [
+          "approach",
+          53
+        ],
+        [
+          "grab",
+          51
+        ],
+        [
+          "withdraw",
+          46
+        ]
+      ]
+    },
+    {
+      "video_name": "z104-july-14-22-gopro",
+      "task_type": "setup gopro",
+      "duration_s": 346.0,
+      "n_fine_actions": 140,
+      "n_wrong": 22,
+      "n_recovery_student": 16,
+      "n_recovery_instructor": 6,
+      "n_not_corrected": 0,
+      "n_drop_failures": 1,
+      "est_size_mb": 206.9,
+      "top_verbs": [
+        [
+          "place",
+          26
+        ],
+        [
+          "grab",
+          19
+        ],
+        [
+          "lift",
+          17
+        ],
+        [
+          "inspect",
+          12
+        ],
+        [
+          "pull",
+          11
+        ]
+      ]
+    },
+    {
+      "video_name": "z153-aug-25-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 729.0,
+      "n_fine_actions": 269,
+      "n_wrong": 21,
+      "n_recovery_student": 9,
+      "n_recovery_instructor": 12,
+      "n_not_corrected": 0,
+      "n_drop_failures": 5,
+      "est_size_mb": 435.9,
+      "top_verbs": [
+        [
+          "grab",
+          69
+        ],
+        [
+          "align",
+          43
+        ],
+        [
+          "insert",
+          37
+        ],
+        [
+          "place",
+          30
+        ],
+        [
+          "screw",
+          24
+        ]
+      ]
+    },
+    {
+      "video_name": "z027-june-22-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 528.0,
+      "n_fine_actions": 260,
+      "n_wrong": 21,
+      "n_recovery_student": 8,
+      "n_recovery_instructor": 13,
+      "n_not_corrected": 0,
+      "n_drop_failures": 1,
+      "est_size_mb": 315.7,
+      "top_verbs": [
+        [
+          "approach",
+          50
+        ],
+        [
+          "grab",
+          46
+        ],
+        [
+          "insert",
+          33
+        ],
+        [
+          "screw",
+          31
+        ],
+        [
+          "rotate",
+          19
+        ]
+      ]
+    },
+    {
+      "video_name": "z065-june-29-22-dslr",
+      "task_type": "setup camera",
+      "duration_s": 183.0,
+      "n_fine_actions": 69,
+      "n_wrong": 21,
+      "n_recovery_student": 16,
+      "n_recovery_instructor": 5,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 109.4,
+      "top_verbs": [
+        [
+          "push",
+          15
+        ],
+        [
+          "grab",
+          7
+        ],
+        [
+          "place",
+          7
+        ],
+        [
+          "rotate",
+          6
+        ],
+        [
+          "pull",
+          6
+        ]
+      ]
+    },
+    {
+      "video_name": "z157-aug-27-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1061.0,
+      "n_fine_actions": 272,
+      "n_wrong": 20,
+      "n_recovery_student": 0,
+      "n_recovery_instructor": 20,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 634.5,
+      "top_verbs": [
+        [
+          "insert",
+          46
+        ],
+        [
+          "grab",
+          42
+        ],
+        [
+          "screw",
+          38
+        ],
+        [
+          "place",
+          23
+        ],
+        [
+          "lift",
+          22
+        ]
+      ]
+    },
+    {
+      "video_name": "z185-sep-09-22-gladom_assemble",
+      "task_type": "assemble tray table",
+      "duration_s": 348.0,
+      "n_fine_actions": 144,
+      "n_wrong": 20,
+      "n_recovery_student": 6,
+      "n_recovery_instructor": 14,
+      "n_not_corrected": 0,
+      "n_drop_failures": 1,
+      "est_size_mb": 208.1,
+      "top_verbs": [
+        [
+          "grab",
+          29
+        ],
+        [
+          "place",
+          21
+        ],
+        [
+          "align",
+          18
+        ],
+        [
+          "rotate",
+          14
+        ],
+        [
+          "hold",
+          13
+        ]
+      ]
+    },
+    {
+      "video_name": "z069-june-29-22-marius_assemble",
+      "task_type": "assemble stool",
+      "duration_s": 283.0,
+      "n_fine_actions": 125,
+      "n_wrong": 20,
+      "n_recovery_student": 15,
+      "n_recovery_instructor": 5,
+      "n_not_corrected": 0,
+      "n_drop_failures": 7,
+      "est_size_mb": 169.2,
+      "top_verbs": [
+        [
+          "grab",
+          28
+        ],
+        [
+          "lift",
+          23
+        ],
+        [
+          "insert",
+          20
+        ],
+        [
+          "hold",
+          16
+        ],
+        [
+          "drop",
+          10
+        ]
+      ]
+    },
+    {
+      "video_name": "R087-27July-GoPro",
+      "task_type": "setup gopro",
+      "duration_s": 226.0,
+      "n_fine_actions": 38,
+      "n_wrong": 20,
+      "n_recovery_student": 20,
+      "n_recovery_instructor": 0,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 135.1,
+      "top_verbs": [
+        [
+          "pull",
+          17
+        ],
+        [
+          "rotate",
+          6
+        ],
+        [
+          "grab",
+          5
+        ],
+        [
+          "press",
+          3
+        ],
+        [
+          "hold",
+          3
+        ]
+      ]
+    },
+    {
+      "video_name": "z062-june-29-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1267.0,
+      "n_fine_actions": 20,
+      "n_wrong": 20,
+      "n_recovery_student": 0,
+      "n_recovery_instructor": 20,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 757.7,
+      "top_verbs": [
+        [
+          "assemble",
+          6
+        ],
+        [
+          "grab",
+          5
+        ],
+        [
+          "insert",
+          2
+        ],
+        [
+          "rotate",
+          2
+        ],
+        [
+          "screw",
+          2
+        ]
+      ]
+    },
+    {
+      "video_name": "z053-june-27-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1011.0,
+      "n_fine_actions": 356,
+      "n_wrong": 19,
+      "n_recovery_student": 0,
+      "n_recovery_instructor": 19,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 604.6,
+      "top_verbs": [
+        [
+          "grab",
+          73
+        ],
+        [
+          "insert",
+          51
+        ],
+        [
+          "place",
+          44
+        ],
+        [
+          "screw",
+          31
+        ],
+        [
+          "approach",
+          24
+        ]
+      ]
+    },
+    {
+      "video_name": "z079-july-05-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 898.0,
+      "n_fine_actions": 346,
+      "n_wrong": 19,
+      "n_recovery_student": 9,
+      "n_recovery_instructor": 10,
+      "n_not_corrected": 0,
+      "n_drop_failures": 4,
+      "est_size_mb": 537.0,
+      "top_verbs": [
+        [
+          "insert",
+          78
+        ],
+        [
+          "rotate",
+          59
+        ],
+        [
+          "withdraw",
+          52
+        ],
+        [
+          "grab",
+          39
+        ],
+        [
+          "screw",
+          39
+        ]
+      ]
+    },
+    {
+      "video_name": "z178-sep-05-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 796.0,
+      "n_fine_actions": 175,
+      "n_wrong": 19,
+      "n_recovery_student": 9,
+      "n_recovery_instructor": 10,
+      "n_not_corrected": 0,
+      "n_drop_failures": 8,
+      "est_size_mb": 476.0,
+      "top_verbs": [
+        [
+          "insert",
+          41
+        ],
+        [
+          "screw",
+          36
+        ],
+        [
+          "rotate",
+          26
+        ],
+        [
+          "grab",
+          25
+        ],
+        [
+          "align",
+          8
+        ]
+      ]
+    },
+    {
+      "video_name": "z051-june-27-22-marius_assemble",
+      "task_type": "assemble stool",
+      "duration_s": 306.0,
+      "n_fine_actions": 128,
+      "n_wrong": 19,
+      "n_recovery_student": 0,
+      "n_recovery_instructor": 19,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 183.0,
+      "top_verbs": [
+        [
+          "grab",
+          28
+        ],
+        [
+          "insert",
+          23
+        ],
+        [
+          "place",
+          21
+        ],
+        [
+          "withdraw",
+          15
+        ],
+        [
+          "screw",
+          13
+        ]
+      ]
+    },
+    {
+      "video_name": "z160-aug-29-22-switch",
+      "task_type": "setup switch",
+      "duration_s": 341.0,
+      "n_fine_actions": 126,
+      "n_wrong": 19,
+      "n_recovery_student": 11,
+      "n_recovery_instructor": 8,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 203.9,
+      "top_verbs": [
+        [
+          "grab",
+          27
+        ],
+        [
+          "place",
+          20
+        ],
+        [
+          "flip",
+          14
+        ],
+        [
+          "insert",
+          13
+        ],
+        [
+          "withdraw",
+          12
+        ]
+      ]
+    },
+    {
+      "video_name": "z175-sep-05-22-gopro",
+      "task_type": "setup gopro",
+      "duration_s": 393.0,
+      "n_fine_actions": 107,
+      "n_wrong": 19,
+      "n_recovery_student": 15,
+      "n_recovery_instructor": 4,
+      "n_not_corrected": 0,
+      "n_drop_failures": 1,
+      "est_size_mb": 235.0,
+      "top_verbs": [
+        [
+          "insert",
+          15
+        ],
+        [
+          "grab",
+          14
+        ],
+        [
+          "place",
+          11
+        ],
+        [
+          "withdraw",
+          11
+        ],
+        [
+          "inspect",
+          9
+        ]
+      ]
+    },
+    {
+      "video_name": "z086-july-07-22-marius_assemble",
+      "task_type": "assemble stool",
+      "duration_s": 358.0,
+      "n_fine_actions": 99,
+      "n_wrong": 19,
+      "n_recovery_student": 3,
+      "n_recovery_instructor": 16,
+      "n_not_corrected": 0,
+      "n_drop_failures": 1,
+      "est_size_mb": 214.1,
+      "top_verbs": [
+        [
+          "grab",
+          24
+        ],
+        [
+          "insert",
+          19
+        ],
+        [
+          "place",
+          12
+        ],
+        [
+          "screw",
+          12
+        ],
+        [
+          "withdraw",
+          9
+        ]
+      ]
+    },
+    {
+      "video_name": "z195-sep-17-22-nespresso",
+      "task_type": "make coffee with nespresso machine",
+      "duration_s": 177.0,
+      "n_fine_actions": 88,
+      "n_wrong": 19,
+      "n_recovery_student": 18,
+      "n_recovery_instructor": 1,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 105.8,
+      "top_verbs": [
+        [
+          "approach",
+          14
+        ],
+        [
+          "grab",
+          12
+        ],
+        [
+          "lift",
+          12
+        ],
+        [
+          "press",
+          5
+        ],
+        [
+          "open",
+          4
+        ]
+      ]
+    },
+    {
+      "video_name": "z127-aug-10-22-dslr",
+      "task_type": "setup camera",
+      "duration_s": 204.0,
+      "n_fine_actions": 73,
+      "n_wrong": 19,
+      "n_recovery_student": 17,
+      "n_recovery_instructor": 2,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 122.0,
+      "top_verbs": [
+        [
+          "rotate",
+          14
+        ],
+        [
+          "inspect",
+          9
+        ],
+        [
+          "grab",
+          9
+        ],
+        [
+          "withdraw",
+          7
+        ],
+        [
+          "hold",
+          7
+        ]
+      ]
+    },
+    {
+      "video_name": "z038-june-23-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 983.0,
+      "n_fine_actions": 393,
+      "n_wrong": 18,
+      "n_recovery_student": 7,
+      "n_recovery_instructor": 11,
+      "n_not_corrected": 0,
+      "n_drop_failures": 2,
+      "est_size_mb": 587.8,
+      "top_verbs": [
+        [
+          "grab",
+          101
+        ],
+        [
+          "insert",
+          48
+        ],
+        [
+          "place",
+          37
+        ],
+        [
+          "align",
+          34
+        ],
+        [
+          "screw",
+          33
+        ]
+      ]
+    },
+    {
+      "video_name": "z010-june-16-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 515.0,
+      "n_fine_actions": 278,
+      "n_wrong": 18,
+      "n_recovery_student": 12,
+      "n_recovery_instructor": 6,
+      "n_not_corrected": 0,
+      "n_drop_failures": 2,
+      "est_size_mb": 308.0,
+      "top_verbs": [
+        [
+          "approach",
+          61
+        ],
+        [
+          "grab",
+          46
+        ],
+        [
+          "screw",
+          44
+        ],
+        [
+          "insert",
+          41
+        ],
+        [
+          "withdraw",
+          26
+        ]
+      ]
+    },
+    {
+      "video_name": "z077-july-01-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1022.0,
+      "n_fine_actions": 244,
+      "n_wrong": 18,
+      "n_recovery_student": 0,
+      "n_recovery_instructor": 18,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 611.2,
+      "top_verbs": [
+        [
+          "grab",
+          71
+        ],
+        [
+          "insert",
+          38
+        ],
+        [
+          "place",
+          35
+        ],
+        [
+          "screw",
+          26
+        ],
+        [
+          "withdraw",
+          21
+        ]
+      ]
+    },
+    {
+      "video_name": "z068-june-29-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1212.0,
+      "n_fine_actions": 234,
+      "n_wrong": 18,
+      "n_recovery_student": 6,
+      "n_recovery_instructor": 12,
+      "n_not_corrected": 0,
+      "n_drop_failures": 5,
+      "est_size_mb": 724.8,
+      "top_verbs": [
+        [
+          "grab",
+          75
+        ],
+        [
+          "insert",
+          49
+        ],
+        [
+          "place",
+          31
+        ],
+        [
+          "screw",
+          27
+        ],
+        [
+          "align",
+          12
+        ]
+      ]
+    },
+    {
+      "video_name": "z178-sep-05-22-gladom_assemble",
+      "task_type": "assemble tray table",
+      "duration_s": 338.0,
+      "n_fine_actions": 147,
+      "n_wrong": 18,
+      "n_recovery_student": 6,
+      "n_recovery_instructor": 12,
+      "n_not_corrected": 0,
+      "n_drop_failures": 1,
+      "est_size_mb": 202.1,
+      "top_verbs": [
+        [
+          "place",
+          22
+        ],
+        [
+          "grab",
+          18
+        ],
+        [
+          "align",
+          16
+        ],
+        [
+          "lift",
+          14
+        ],
+        [
+          "slide",
+          12
+        ]
+      ]
+    },
+    {
+      "video_name": "z129-aug-11-22-gopro",
+      "task_type": "setup gopro",
+      "duration_s": 384.0,
+      "n_fine_actions": 121,
+      "n_wrong": 18,
+      "n_recovery_student": 17,
+      "n_recovery_instructor": 1,
+      "n_not_corrected": 0,
+      "n_drop_failures": 1,
+      "est_size_mb": 229.6,
+      "top_verbs": [
+        [
+          "grab",
+          20
+        ],
+        [
+          "inspect",
+          14
+        ],
+        [
+          "place",
+          14
+        ],
+        [
+          "lift",
+          13
+        ],
+        [
+          "pull",
+          12
+        ]
+      ]
+    },
+    {
+      "video_name": "z136-aug-13-22-dslr",
+      "task_type": "setup camera",
+      "duration_s": 250.0,
+      "n_fine_actions": 81,
+      "n_wrong": 18,
+      "n_recovery_student": 10,
+      "n_recovery_instructor": 8,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 149.5,
+      "top_verbs": [
+        [
+          "rotate",
+          20
+        ],
+        [
+          "inspect",
+          14
+        ],
+        [
+          "grab",
+          7
+        ],
+        [
+          "place",
+          7
+        ],
+        [
+          "open",
+          6
+        ]
+      ]
+    },
+    {
+      "video_name": "z019-june-20-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 1153.0,
+      "n_fine_actions": 346,
+      "n_wrong": 17,
+      "n_recovery_student": 10,
+      "n_recovery_instructor": 7,
+      "n_not_corrected": 0,
+      "n_drop_failures": 10,
+      "est_size_mb": 689.5,
+      "top_verbs": [
+        [
+          "insert",
+          86
+        ],
+        [
+          "withdraw",
+          57
+        ],
+        [
+          "grab",
+          52
+        ],
+        [
+          "screw",
+          52
+        ],
+        [
+          "rotate",
+          33
+        ]
+      ]
+    },
+    {
+      "video_name": "z032-june-22-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 643.0,
+      "n_fine_actions": 326,
+      "n_wrong": 17,
+      "n_recovery_student": 6,
+      "n_recovery_instructor": 11,
+      "n_not_corrected": 0,
+      "n_drop_failures": 1,
+      "est_size_mb": 384.5,
+      "top_verbs": [
+        [
+          "insert",
+          59
+        ],
+        [
+          "grab",
+          50
+        ],
+        [
+          "withdraw",
+          45
+        ],
+        [
+          "approach",
+          42
+        ],
+        [
+          "screw",
+          34
+        ]
+      ]
+    },
+    {
+      "video_name": "z020-june-20-22-knarrevik_assemble",
+      "task_type": "assemble nightstand",
+      "duration_s": 672.0,
+      "n_fine_actions": 241,
+      "n_wrong": 17,
+      "n_recovery_student": 5,
+      "n_recovery_instructor": 12,
+      "n_not_corrected": 0,
+      "n_drop_failures": 4,
+      "est_size_mb": 401.9,
+      "top_verbs": [
+        [
+          "grab",
+          48
+        ],
+        [
+          "insert",
+          48
+        ],
+        [
+          "screw",
+          44
+        ],
+        [
+          "place",
+          26
+        ],
+        [
+          "withdraw",
+          25
+        ]
+      ]
+    },
+    {
+      "video_name": "z154-aug-26-22-rashult_disassemble",
+      "task_type": "disassemble utility cart",
+      "duration_s": 349.0,
+      "n_fine_actions": 176,
+      "n_wrong": 17,
+      "n_recovery_student": 15,
+      "n_recovery_instructor": 0,
+      "n_not_corrected": 2,
+      "n_drop_failures": 12,
+      "est_size_mb": 208.7,
+      "top_verbs": [
+        [
+          "place",
+          39
+        ],
+        [
+          "disassemble",
+          32
+        ],
+        [
+          "unscrew",
+          27
+        ],
+        [
+          "align",
+          20
+        ],
+        [
+          "grab",
+          15
+        ]
+      ]
+    },
+    {
+      "video_name": "z183-sep-08-22-switch",
+      "task_type": "setup switch",
+      "duration_s": 292.0,
+      "n_fine_actions": 136,
+      "n_wrong": 17,
+      "n_recovery_student": 14,
+      "n_recovery_instructor": 3,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 174.6,
+      "top_verbs": [
+        [
+          "place",
+          22
+        ],
+        [
+          "lift",
+          17
+        ],
+        [
+          "grab",
+          16
+        ],
+        [
+          "rotate",
+          13
+        ],
+        [
+          "inspect",
+          11
+        ]
+      ]
+    },
+    {
+      "video_name": "z051-june-27-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1269.0,
+      "n_fine_actions": 383,
+      "n_wrong": 16,
+      "n_recovery_student": 0,
+      "n_recovery_instructor": 16,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 758.9,
+      "top_verbs": [
+        [
+          "screw",
+          91
+        ],
+        [
+          "grab",
+          67
+        ],
+        [
+          "place",
+          40
+        ],
+        [
+          "approach",
+          38
+        ],
+        [
+          "disassemble",
+          37
+        ]
+      ]
+    },
+    {
+      "video_name": "z201-sep-22-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1272.0,
+      "n_fine_actions": 331,
+      "n_wrong": 16,
+      "n_recovery_student": 3,
+      "n_recovery_instructor": 13,
+      "n_not_corrected": 0,
+      "n_drop_failures": 3,
+      "est_size_mb": 760.7,
+      "top_verbs": [
+        [
+          "grab",
+          61
+        ],
+        [
+          "screw",
+          39
+        ],
+        [
+          "insert",
+          35
+        ],
+        [
+          "align",
+          33
+        ],
+        [
+          "rotate",
+          31
+        ]
+      ]
+    },
+    {
+      "video_name": "z093-july-11-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 1396.0,
+      "n_fine_actions": 220,
+      "n_wrong": 16,
+      "n_recovery_student": 1,
+      "n_recovery_instructor": 15,
+      "n_not_corrected": 0,
+      "n_drop_failures": 1,
+      "est_size_mb": 834.8,
+      "top_verbs": [
+        [
+          "grab",
+          67
+        ],
+        [
+          "insert",
+          53
+        ],
+        [
+          "screw",
+          29
+        ],
+        [
+          "align",
+          16
+        ],
+        [
+          "place",
+          14
+        ]
+      ]
+    },
+    {
+      "video_name": "z075-july-01-22-rashult_assemble",
+      "task_type": "assemble utility cart",
+      "duration_s": 930.0,
+      "n_fine_actions": 169,
+      "n_wrong": 16,
+      "n_recovery_student": 0,
+      "n_recovery_instructor": 16,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 556.1,
+      "top_verbs": [
+        [
+          "grab",
+          57
+        ],
+        [
+          "screw",
+          30
+        ],
+        [
+          "place",
+          25
+        ],
+        [
+          "approach",
+          15
+        ],
+        [
+          "insert",
+          13
+        ]
+      ]
+    },
+    {
+      "video_name": "z068-june-29-22-marius_assemble",
+      "task_type": "assemble stool",
+      "duration_s": 259.0,
+      "n_fine_actions": 165,
+      "n_wrong": 16,
+      "n_recovery_student": 6,
+      "n_recovery_instructor": 10,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 154.9,
+      "top_verbs": [
+        [
+          "grab",
+          30
+        ],
+        [
+          "insert",
+          24
+        ],
+        [
+          "approach",
+          21
+        ],
+        [
+          "place",
+          21
+        ],
+        [
+          "screw",
+          21
+        ]
+      ]
+    },
+    {
+      "video_name": "z150-aug-22-22-gopro",
+      "task_type": "setup gopro",
+      "duration_s": 322.0,
+      "n_fine_actions": 165,
+      "n_wrong": 16,
+      "n_recovery_student": 14,
+      "n_recovery_instructor": 2,
+      "n_not_corrected": 0,
+      "n_drop_failures": 2,
+      "est_size_mb": 192.6,
+      "top_verbs": [
+        [
+          "grab",
+          26
+        ],
+        [
+          "place",
+          19
+        ],
+        [
+          "inspect",
+          17
+        ],
+        [
+          "lift",
+          16
+        ],
+        [
+          "insert",
+          11
+        ]
+      ]
+    },
+    {
+      "video_name": "z186-sep-09-22-gladom_assemble",
+      "task_type": "assemble tray table",
+      "duration_s": 279.0,
+      "n_fine_actions": 145,
+      "n_wrong": 16,
+      "n_recovery_student": 3,
+      "n_recovery_instructor": 13,
+      "n_not_corrected": 0,
+      "n_drop_failures": 3,
+      "est_size_mb": 166.8,
+      "top_verbs": [
+        [
+          "grab",
+          28
+        ],
+        [
+          "insert",
+          20
+        ],
+        [
+          "approach",
+          14
+        ],
+        [
+          "rotate",
+          13
+        ],
+        [
+          "withdraw",
+          11
+        ]
+      ]
+    },
+    {
+      "video_name": "z031-june-22-22-switch",
+      "task_type": "setup switch",
+      "duration_s": 328.0,
+      "n_fine_actions": 101,
+      "n_wrong": 16,
+      "n_recovery_student": 0,
+      "n_recovery_instructor": 16,
+      "n_not_corrected": 0,
+      "n_drop_failures": 0,
+      "est_size_mb": 196.1,
+      "top_verbs": [
+        [
+          "grab",
+          16
+        ],
+        [
+          "place",
+          13
+        ],
+        [
+          "insert",
+          13
+        ],
+        [
+          "inspect",
+          11
+        ],
+        [
+          "withdraw",
+          9
+        ]
+      ]
+    }
+  ]
+}
