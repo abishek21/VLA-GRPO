@@ -32,7 +32,8 @@ from build_event_labels import RATE_HZ  # 10 Hz
 
 TARGET_HZ = RATE_HZ
 NUM_JOINTS = 26            # HoloLens hand model joints
-JOINT_STRIDE = 17         # per joint: [valid, 16 matrix values (row-major 4x4)]
+MATRIX_START = 3          # v[0]=timestamp, v[1]=frame id, v[2]=leading valid flag
+JOINT_STRIDE = 16         # per joint: a 4x4 row-major pose matrix (16 values)
 PER_HAND_DIM = NUM_JOINTS * 3          # xyz per joint = 78
 HAND_DIM = PER_HAND_DIM * 2            # left + right = 156
 
@@ -86,14 +87,11 @@ def parse_hand_line(line: str) -> np.ndarray:
     """Parse one row of a HoloAssist *_sync.txt hand file into 26 joint XYZ
     positions (78 numbers).
 
-    Verified: row = [timestamp, frame_id, <26 joint blocks>, <trailing flags>].
-    Each joint block encodes a 4x4 row-major pose; translation = matrix[3,7,11].
-
-    TODO(GPU): the exact per-joint stride needs numpy verification — 469 body
-    numbers is not divisible by 17, so there is likely one extra value per joint
-    or a trailing validity block to account for. Joint 0 parses correctly with
-    stride 17; confirm/adjust JOINT_STRIDE and the trailing offset on the GPU
-    (inspect one row with numpy, checking positions are contiguous & metric).
+    Verified format (471 fields):
+        v[0]=timestamp, v[1]=frame_id, v[2]=leading valid flag,
+        then 26 joints x 16 (a row-major 4x4 pose matrix each; bottom row 0 0 0 1
+        confirmed at indices 15,31,47,... => stride 16), then trailing 1-flags.
+        Translation (position) = matrix elements [3,7,11] (row-major tx,ty,tz).
     Returns [78] float32; zeros if malformed."""
     toks = line.replace(",", " ").split()
     vals = []
@@ -103,12 +101,11 @@ def parse_hand_line(line: str) -> np.ndarray:
         except ValueError:
             vals.append(0.0)
     vals = np.asarray(vals, np.float32)
-    need = 2 + NUM_JOINTS * JOINT_STRIDE
+    need = MATRIX_START + NUM_JOINTS * JOINT_STRIDE
     if vals.size < need:
         return np.zeros(PER_HAND_DIM, np.float32)
-    body = vals[2:need].reshape(NUM_JOINTS, JOINT_STRIDE)
-    # per joint: [valid, m0..m15]; translation = m3, m7, m11 (row-major 4x4)
-    xyz = body[:, [1 + 3, 1 + 7, 1 + 11]]         # [26, 3]
+    mats = vals[MATRIX_START:need].reshape(NUM_JOINTS, JOINT_STRIDE)  # [26,16]
+    xyz = mats[:, [3, 7, 11]]                      # translation per joint [26,3]
     return xyz.reshape(-1).astype(np.float32)     # [78]
 
 
