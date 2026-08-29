@@ -38,7 +38,7 @@ case "$MODE" in
     PATTERNS=()
     while IFS= read -r s; do
       [ -z "$s" ] && continue
-      PATTERNS+=( "--wildcards" "--no-anchored" "*${s}*/Video/Video_compress.mp4" )
+      PATTERNS+=( "--wildcards" "--no-anchored" "*${s}*/Export_py/Video_compress.mp4" )
     done < "$WANTED"
     echo "streaming video_compress.tar, extracting $(wc -l < "$WANTED") sessions ..."
     curl -sL "$VIDEO_TAR" | tar -xv -C "$DEST" "${PATTERNS[@]}"
