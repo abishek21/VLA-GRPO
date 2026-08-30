@@ -188,9 +188,12 @@ def main():
 
     train_dl = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True,
                           num_workers=args.num_workers, drop_last=True,
-                          persistent_workers=args.num_workers > 0)
+                          persistent_workers=args.num_workers > 0,
+                          pin_memory=True,
+                          prefetch_factor=4 if args.num_workers > 0 else None)
     val_dl = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False,
-                        num_workers=max(1, args.num_workers // 2))
+                        num_workers=max(1, args.num_workers // 2),
+                        pin_memory=True)
 
     # ---- class weights from the FULL label set ----
     frac = class_balance(ds)

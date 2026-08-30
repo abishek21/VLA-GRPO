@@ -121,6 +121,11 @@ class InteractionRewardModel(nn.Module):
         # encode each frame with the frozen encoder
         flat = frames.reshape(B * T, *frames.shape[2:])       # [B*T,3,H,W]
         vis = self.encoder(flat).reshape(B, T, -1)            # [B,T,d_vis]
+        return self.forward_features(vis, hand)
+
+    def forward_features(self, vis: torch.Tensor, hand: torch.Tensor) -> torch.Tensor:
+        """Same as forward but takes PRECOMPUTED visual features vis [B,T,d_vis]
+        (skips the frozen encoder). Used with cached features for fast training."""
         h = self.hand_mlp(hand)                               # [B,T,d_hand]
         fused = self.fuse(torch.cat([vis, h], dim=-1))        # [B,T,d_model]
         temporal, _ = self.gru(fused)                         # [B,T,d_model]
