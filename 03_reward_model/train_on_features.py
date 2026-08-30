@@ -96,8 +96,10 @@ def class_balance(ds):
 
 @torch.no_grad()
 def evaluate(model, loader, device):
-    """Report per-event best-threshold F1 (honest for rare classes) by sweeping
-    thresholds on the collected probabilities."""
+    """Threshold-INDEPENDENT evaluation via Average Precision (area under the
+    precision-recall curve). AP is the standard metric for rare-class detection
+    and needs no threshold choice (avoids selecting a threshold on val = leak).
+    Also reports best-F1 (secondary, with its threshold) for interpretability."""
     model.eval()
     all_p, all_y = [], []
     for vis, hand, labels in loader:
@@ -105,14 +107,32 @@ def evaluate(model, loader, device):
         p = torch.sigmoid(model.forward_features(vis, hand)).cpu()
         all_p.append(p.reshape(-1, len(EVENT_NAMES)))
         all_y.append(labels.reshape(-1, len(EVENT_NAMES)))
-    P = torch.cat(all_p); Y = torch.cat(all_y)
-    ths = torch.linspace(0.05, 0.95, 19)
+    P = torch.cat(all_p).numpy(); Y = torch.cat(all_y).numpy()
+
+    def average_precision(scores, labels):
+        # AP = area under PR curve, computed by ranking (no threshold).
+        order = np.argsort(-scores)
+        y = labels[order]
+        tp = np.cumsum(y)
+        fp = np.cumsum(1 - y)
+        n_pos = y.sum()
+        if n_pos == 0:
+            return float("nan")
+        prec = tp / (tp + fp + 1e-9)
+        rec = tp / (n_pos + 1e-9)
+        # integrate precision over recall increments
+        drec = np.diff(np.concatenate([[0.0], rec]))
+        return float((prec * drec).sum())
+
     out = {}
     for i, name in enumerate(EVENT_NAMES):
         p, y = P[:, i], Y[:, i]
+        ap = average_precision(p, y)
+        base = float(y.mean())               # base rate = AP of random baseline
+        # secondary: best-F1 (report but don't select models on it)
         best_f1, best_th = 0.0, 0.5
-        for th in ths:
-            pred = (p > th).float()
+        for th in np.linspace(0.05, 0.95, 19):
+            pred = (p > th)
             tp = ((pred == 1) & (y == 1)).sum()
             fp = ((pred == 1) & (y == 0)).sum()
             fn = ((pred == 0) & (y == 1)).sum()
@@ -120,7 +140,9 @@ def evaluate(model, loader, device):
             f1 = float(2 * prec * rec / (prec + rec + 1e-9))
             if f1 > best_f1:
                 best_f1, best_th = f1, float(th)
-        out[name] = {"F1": best_f1, "th": best_th}
+        # lift = how much better than random ranking (AP / base rate)
+        out[name] = {"AP": ap, "base": base, "lift": ap / (base + 1e-9),
+                     "F1": best_f1, "th": best_th}
     return out
 
 
@@ -190,12 +212,14 @@ def main():
                 wb.log({"train/loss": parts["total"], "epoch": epoch}, step=gstep)
 
         m = evaluate(model, val_dl, device)
-        key = 0.5 * (m["failure"]["F1"] + m["recovery"]["F1"])
+        # select on AP (threshold-independent). key = mean AP of failure+recovery.
+        key = 0.5 * (m["failure"]["AP"] + m["recovery"]["AP"])
         print(f"[epoch {epoch}] loss {running/max(1,len(train_dl)):.3f} "
-              f"| failure F1 {m['failure']['F1']:.3f}@{m['failure']['th']:.2f} "
-              f"| recovery F1 {m['recovery']['F1']:.3f}@{m['recovery']['th']:.2f} "
-              f"| grasp {m['grasp']['F1']:.3f} contact {m['contact']['F1']:.3f} "
-              f"release {m['release']['F1']:.3f} | key {key:.3f}")
+              f"| failure AP {m['failure']['AP']:.3f} (base {m['failure']['base']:.3f}, "
+              f"lift {m['failure']['lift']:.1f}x) "
+              f"| recovery AP {m['recovery']['AP']:.3f} (lift {m['recovery']['lift']:.1f}x) "
+              f"| grasp AP {m['grasp']['AP']:.3f} contact AP {m['contact']['AP']:.3f} "
+              f"| key {key:.3f}")
         hist.append({"epoch": epoch, "metrics": m, "key_f1": key})
         json.dump(hist, open(os.path.join(args.out, "history.json"), "w"), indent=2)
         if wb is not None:
