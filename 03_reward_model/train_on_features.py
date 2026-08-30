@@ -35,16 +35,19 @@ def normalize_hand(hand):
     absolute world position. Also append per-frame hand velocity (a drop is a
     fast change). Returns [T, 156+156] = wrist-relative pos + velocity.
     """
+    hand = np.asarray(hand, np.float32)
     T = hand.shape[0]
-    h = hand.astype(np.float32).reshape(T, 2, 26, 3)         # [T,2hands,26,3]
+    if T == 0 or hand.shape[1] != 156:
+        return np.zeros((T, 312), np.float16)               # graceful empty/bad
+    h = hand.reshape(T, 2, 26, 3)                            # [T,2hands,26,3]
     wrist = h[:, :, 0:1, :]                                  # [T,2,1,3]
     rel = h - wrist                                          # wrist-relative
     # robust scale (per-hand typical extent ~0.1m); standardize
-    scale = np.abs(rel).mean() + 1e-6
-    rel = rel / scale
-    rel = rel.reshape(T, -1)                                 # [T,156]
+    scale = float(np.abs(rel).mean()) + 1e-6
+    rel = (rel / scale).reshape(T, -1)                       # [T,156]
     vel = np.zeros_like(rel)
-    vel[1:] = rel[1:] - rel[:-1]                             # motion cue
+    if T > 1:
+        vel[1:] = rel[1:] - rel[:-1]                         # motion cue
     return np.concatenate([rel, vel], axis=1).astype(np.float16)  # [T,312]
 
 
