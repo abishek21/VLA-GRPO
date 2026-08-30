@@ -69,6 +69,27 @@ into a loop (mirror `train_smoke.py`, but iterate the DataLoader and use
 `class_balance(ds)` for `pos_weight`). Target: failure/recovery F1 on a held-out
 video split.
 
+Ready-made trainer:
+```bash
+# 1. (optional) monitoring: pip install wandb && wandb login
+# 2. train on real data with R3M + live W&B:
+python 03_reward_model/train_reward_model.py \
+    --root /workspace/holoassist --encoder r3m \
+    --epochs 30 --clip-len 60 --batch-size 8 --H 224 --W 224 \
+    --out runs/reward_v1 --wandb --wandb-run reward_v1
+```
+- Live dashboard: loss (event/temporal/transition) per step, and per-event
+  precision/recall/F1 per epoch. Headline metric: `val/key_f1`
+  (mean of failure + recovery F1).
+- `--wandb` is optional; without it, metrics still print + save to
+  `runs/.../history.json`. Best checkpoint → `runs/.../best.pt`.
+- **Push `best.pt` to Azure/HF before stopping the pod** (ephemeral disk!).
+
+Local dry run (no data/R3M, validates wiring):
+```bash
+python 03_reward_model/train_reward_model.py --encoder stub --dry-run --epochs 2
+```
+
 ## Gates (from the proposal)
 - [ ] **G3:** reward model reaches usable failure/recovery F1 on held-out human clips.
 - [ ] **G4:** reward correlates with sim ground-truth success on robot rollouts.
