@@ -26,18 +26,43 @@ from reward_model import InteractionRewardModel, StubEncoder, pick_device
 from losses import total_loss, pos_weight_from_freq
 
 
+def normalize_hand(hand):
+    """Make hand features informative for grasp/drop detection.
+    hand: [T, 156] = 2 hands x 26 joints x 3 (raw HoloLens WORLD coords, which
+    carry huge head/room offsets that drown the finger geometry).
+    We recenter each hand on its wrist (joint 0) and scale, so the model sees
+    the RELATIVE joint configuration (fingers opening/closing) instead of the
+    absolute world position. Also append per-frame hand velocity (a drop is a
+    fast change). Returns [T, 156+156] = wrist-relative pos + velocity.
+    """
+    T = hand.shape[0]
+    h = hand.astype(np.float32).reshape(T, 2, 26, 3)         # [T,2hands,26,3]
+    wrist = h[:, :, 0:1, :]                                  # [T,2,1,3]
+    rel = h - wrist                                          # wrist-relative
+    # robust scale (per-hand typical extent ~0.1m); standardize
+    scale = np.abs(rel).mean() + 1e-6
+    rel = rel / scale
+    rel = rel.reshape(T, -1)                                 # [T,156]
+    vel = np.zeros_like(rel)
+    vel[1:] = rel[1:] - rel[:-1]                             # motion cue
+    return np.concatenate([rel, vel], axis=1).astype(np.float16)  # [T,312]
+
+
 class FeatureClips(Dataset):
     """Slices fixed-length clips from cached per-session feature arrays."""
 
-    def __init__(self, feat_dir, clip_len=60, stride=None):
+    def __init__(self, feat_dir, clip_len=60, stride=None, norm_hand=True):
         self.clip_len = clip_len
         self.stride = stride or clip_len
+        self.norm_hand = norm_hand
         self.sessions = {}       # name -> dict(vis, hand, labels)
         self.index = []          # (name, f0)
         for f in sorted(glob.glob(os.path.join(feat_dir, "*.npz"))):
             name = os.path.splitext(os.path.basename(f))[0]
             d = np.load(f)
             vis, hand, lab = d["vis"], d["hand"], d["labels"]
+            if norm_hand:
+                hand = normalize_hand(hand)         # wrist-relative + scale
             T = min(vis.shape[0], hand.shape[0], lab.shape[0])
             if T < clip_len:
                 continue
@@ -46,7 +71,7 @@ class FeatureClips(Dataset):
                 self.index.append((name, f0))
         self.vis_dim = next(iter(self.sessions.values()))["vis"].shape[1]
         print(f"FeatureClips: {len(self.sessions)} sessions -> {len(self.index)} clips "
-              f"(vis_dim={self.vis_dim})")
+              f"(vis_dim={self.vis_dim}, norm_hand={norm_hand})")
 
     def __len__(self):
         return len(self.index)
@@ -70,21 +95,33 @@ def class_balance(ds):
 
 
 @torch.no_grad()
-def evaluate(model, loader, device, thr=0.5):
+def evaluate(model, loader, device):
+    """Report per-event best-threshold F1 (honest for rare classes) by sweeping
+    thresholds on the collected probabilities."""
     model.eval()
-    tp = torch.zeros(len(EVENT_NAMES)); fp = torch.zeros(len(EVENT_NAMES))
-    fn = torch.zeros(len(EVENT_NAMES))
+    all_p, all_y = [], []
     for vis, hand, labels in loader:
-        vis, hand, labels = vis.to(device), hand.to(device), labels.to(device)
-        p = torch.sigmoid(model.forward_features(vis, hand))
-        pred = (p > thr).float()
-        tp += ((pred == 1) & (labels == 1)).sum(dim=(0, 1)).cpu()
-        fp += ((pred == 1) & (labels == 0)).sum(dim=(0, 1)).cpu()
-        fn += ((pred == 0) & (labels == 1)).sum(dim=(0, 1)).cpu()
-    prec = tp / (tp + fp + 1e-9); rec = tp / (tp + fn + 1e-9)
-    f1 = 2 * prec * rec / (prec + rec + 1e-9)
-    return {EVENT_NAMES[i]: {"P": float(prec[i]), "R": float(rec[i]),
-                             "F1": float(f1[i])} for i in range(len(EVENT_NAMES))}
+        vis, hand = vis.to(device), hand.to(device)
+        p = torch.sigmoid(model.forward_features(vis, hand)).cpu()
+        all_p.append(p.reshape(-1, len(EVENT_NAMES)))
+        all_y.append(labels.reshape(-1, len(EVENT_NAMES)))
+    P = torch.cat(all_p); Y = torch.cat(all_y)
+    ths = torch.linspace(0.05, 0.95, 19)
+    out = {}
+    for i, name in enumerate(EVENT_NAMES):
+        p, y = P[:, i], Y[:, i]
+        best_f1, best_th = 0.0, 0.5
+        for th in ths:
+            pred = (p > th).float()
+            tp = ((pred == 1) & (y == 1)).sum()
+            fp = ((pred == 1) & (y == 0)).sum()
+            fn = ((pred == 0) & (y == 1)).sum()
+            prec = tp / (tp + fp + 1e-9); rec = tp / (tp + fn + 1e-9)
+            f1 = float(2 * prec * rec / (prec + rec + 1e-9))
+            if f1 > best_f1:
+                best_f1, best_th = f1, float(th)
+        out[name] = {"F1": best_f1, "th": best_th}
+    return out
 
 
 def main():
@@ -99,6 +136,8 @@ def main():
     ap.add_argument("--wandb", action="store_true")
     ap.add_argument("--wandb-project", default="vla-grpo-reward")
     ap.add_argument("--wandb-run", default=None)
+    ap.add_argument("--bidirectional", action="store_true", default=True)
+    ap.add_argument("--no-norm-hand", action="store_true")
     args = ap.parse_args()
 
     device = pick_device(); os.makedirs(args.out, exist_ok=True)
@@ -112,7 +151,8 @@ def main():
         except Exception as e:  # noqa: BLE001
             print(f"[wandb] disabled ({e!r})"); wb = None
 
-    ds = FeatureClips(args.feats, clip_len=args.clip_len)
+    ds = FeatureClips(args.feats, clip_len=args.clip_len,
+                      norm_hand=not args.no_norm_hand)
     sessions = sorted(ds.sessions.keys()); random.Random(0).shuffle(sessions)
     n_val = max(1, int(len(sessions) * args.val_frac))
     val_s = set(sessions[:n_val])
@@ -127,8 +167,11 @@ def main():
 
     # model with a stub encoder placeholder (unused: we call forward_features)
     enc = StubEncoder(out_dim=ds.vis_dim).to(device)
-    model = InteractionRewardModel(enc, hand_dim=ds.sessions[sessions[0]]["hand"].shape[1],
-                                   n_events=len(EVENT_NAMES)).to(device)
+    hand_dim = ds.sessions[sessions[0]]["hand"].shape[1]
+    model = InteractionRewardModel(enc, hand_dim=hand_dim,
+                                   n_events=len(EVENT_NAMES),
+                                   bidirectional=args.bidirectional).to(device)
+    print(f"hand_dim={hand_dim} | bidirectional={args.bidirectional}")
     trainable = [p for p in model.parameters() if p.requires_grad]
     opt = torch.optim.AdamW(trainable, lr=args.lr)
 
@@ -149,7 +192,8 @@ def main():
         m = evaluate(model, val_dl, device)
         key = 0.5 * (m["failure"]["F1"] + m["recovery"]["F1"])
         print(f"[epoch {epoch}] loss {running/max(1,len(train_dl)):.3f} "
-              f"| failure F1 {m['failure']['F1']:.3f} | recovery F1 {m['recovery']['F1']:.3f} "
+              f"| failure F1 {m['failure']['F1']:.3f}@{m['failure']['th']:.2f} "
+              f"| recovery F1 {m['recovery']['F1']:.3f}@{m['recovery']['th']:.2f} "
               f"| grasp {m['grasp']['F1']:.3f} contact {m['contact']['F1']:.3f} "
               f"release {m['release']['F1']:.3f} | key {key:.3f}")
         hist.append({"epoch": epoch, "metrics": m, "key_f1": key})

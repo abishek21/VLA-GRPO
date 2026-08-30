@@ -93,7 +93,7 @@ def load_r3m_encoder():  # used on GPU only
 class InteractionRewardModel(nn.Module):
     def __init__(self, encoder: VisualEncoder, hand_dim: int = 63,
                  d_hand: int = 128, d_model: int = 256,
-                 n_events: int = 5, gru_layers: int = 1):
+                 n_events: int = 5, gru_layers: int = 1, bidirectional: bool = False):
         super().__init__()
         self.encoder = encoder                       # frozen
         self.n_events = n_events
@@ -107,9 +107,10 @@ class InteractionRewardModel(nn.Module):
         self.fuse = nn.Linear(encoder.out_dim + d_hand, d_model)
         # temporal head (trained): sees the whole sequence
         self.gru = nn.GRU(d_model, d_model, num_layers=gru_layers,
-                          batch_first=True, bidirectional=False)
+                          batch_first=True, bidirectional=bidirectional)
         # event classifier (trained): 5 independent sigmoids (multi-label)
-        self.classifier = nn.Linear(d_model, n_events)
+        gru_out = d_model * (2 if bidirectional else 1)
+        self.classifier = nn.Linear(gru_out, n_events)
 
     def forward(self, frames: torch.Tensor, hand: torch.Tensor) -> torch.Tensor:
         """
