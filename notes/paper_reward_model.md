@@ -51,9 +51,13 @@ rasterize annotations onto a fixed $10\,\mathrm{Hz}$ grid (HoloAssist's native
 rate) to obtain per-timestep binary targets $e_{t}\in\{0,1\}^5$:
 
 - *State events* (contact, grasp, release) are derived from the action **verb**
-  (e.g. `grab`$\rightarrow$grasp; `insert`,`screw`,`place`$\rightarrow$contact;
-  `withdraw`,`remove`$\rightarrow$release) and are set for the full duration of
-  the segment.
+  (e.g. `grab`$\rightarrow$grasp; `insert`,`screw`$\rightarrow$contact;
+  `place`,`withdraw`$\rightarrow$release) and are set for the full duration of
+  the segment. Note that `place` is treated as a *release* (letting-go) event
+  rather than contact: in assembly it is the dominant "set the part down" action
+  and is otherwise the most under-represented state event; this choice raised
+  the release positive-rate from ~3% to ~12% and reduced an over-dominant
+  contact channel (~51%$\rightarrow$~42%), yielding a better-balanced target.
 - *Transition events* (failure, recovery) are derived from **Action
   Correctness**: `Wrong Action*`$\rightarrow$failure, and specifically
   *corrected by performer*$\rightarrow$recovery (self-recovery). Because these
@@ -61,9 +65,22 @@ rate) to obtain per-timestep binary targets $e_{t}\in\{0,1\}^5$:
   window around the transition.
 
 This yields a heavily imbalanced multi-label target: in our training subset,
-per-frame positive rates are approximately contact $51\%$, grasp $20\%$, release
-$3\%$, failure $4\%$, recovery $1\%$. The rarity of failure/recovery motivates
+per-frame positive rates are approximately contact $42\%$, grasp $20\%$, release
+$12\%$, failure $4\%$, recovery $1\%$. The rarity of failure/recovery motivates
 the weighting scheme in Section 3.4.
+
+**Label derivation and limitations.** The five interaction events are *not*
+directly annotated in HoloAssist; they are **weakly derived** by a deterministic
+mapping from the dataset's human-provided **action verbs** and **Action
+Correctness** labels. This is standard weak supervision, but two points warrant
+transparency. (i) The state events (contact/grasp/release) inherit *mapping
+ambiguity* — e.g. `place` denotes both surface contact and release; we assign it
+to release, a modeling choice that materially affects class balance. (ii) By
+contrast, **failure and recovery map almost directly from human labels**
+(`Wrong Action` $\rightarrow$ failure; `corrected by performer` $\rightarrow$
+recovery), making our headline events the most directly grounded in
+human judgment. We validate label quality qualitatively by overlaying events on
+video (see supplementary), and quantitatively via held-out F1 (Section 3.5).
 
 **Subset selection.** As the raw streams total $\sim$370 GB, we select a
 $60$-session subset (RGB + hand pose, $\sim$23 GB) ranked by wrong-action

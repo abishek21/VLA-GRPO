@@ -43,10 +43,13 @@ FAILURE_WINDOW_S = 0.5
 
 # verb -> event bit(s)
 GRASP_VERBS = {"grab", "pick", "hold", "grasp", "grip", "pick_up"}
-CONTACT_VERBS = {"insert", "screw", "unscrew", "place", "press", "push", "plug",
+CONTACT_VERBS = {"insert", "screw", "unscrew", "press", "push", "plug",
                  "tighten", "connect", "attach", "tap", "touch", "align", "fit"}
+# 'place' is both contact AND release (object touches surface, hand lets go).
+# We treat it primarily as a release (letting-go) event, which is otherwise
+# under-represented; it still co-occurs with contact via insert/screw nearby.
 RELEASE_VERBS = {"withdraw", "remove", "release", "unplug", "detach", "drop",
-                 "put_down", "putdown", "let_go"}
+                 "put_down", "putdown", "let_go", "place"}
 
 
 def load_video(video_index):
