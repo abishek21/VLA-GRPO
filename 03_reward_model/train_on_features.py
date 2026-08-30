@@ -156,6 +156,10 @@ def main():
     ap.add_argument("--clip-len", type=int, default=60)
     ap.add_argument("--batch-size", type=int, default=32)
     ap.add_argument("--lr", type=float, default=3e-4)
+    ap.add_argument("--weight-decay", type=float, default=1e-3)
+    ap.add_argument("--dropout", type=float, default=0.4)
+    ap.add_argument("--patience", type=int, default=10,
+                    help="early stop if val AP doesn't improve for N epochs")
     ap.add_argument("--val-frac", type=float, default=0.2)
     ap.add_argument("--out", default="runs/reward_v1")
     ap.add_argument("--wandb", action="store_true")
@@ -195,12 +199,13 @@ def main():
     hand_dim = ds.sessions[sessions[0]]["hand"].shape[1]
     model = InteractionRewardModel(enc, hand_dim=hand_dim,
                                    n_events=len(EVENT_NAMES),
-                                   bidirectional=args.bidirectional).to(device)
-    print(f"hand_dim={hand_dim} | bidirectional={args.bidirectional}")
+                                   bidirectional=args.bidirectional,
+                                   dropout=args.dropout).to(device)
+    print(f"hand_dim={hand_dim} | bidirectional={args.bidirectional} | dropout={args.dropout}")
     trainable = [p for p in model.parameters() if p.requires_grad]
-    opt = torch.optim.AdamW(trainable, lr=args.lr)
+    opt = torch.optim.AdamW(trainable, lr=args.lr, weight_decay=args.weight_decay)
 
-    best = -1.0; hist = []; gstep = 0
+    best = -1.0; hist = []; gstep = 0; since_improve = 0
     for epoch in range(args.epochs):
         model.train(); running = 0.0
         for vis, hand, labels in train_dl:
@@ -235,7 +240,13 @@ def main():
             best = key
             torch.save({"model": model.state_dict(), "epoch": epoch, "metrics": m,
                         "args": vars(args)}, os.path.join(args.out, "best.pt"))
-            print(f"  -> saved best (key F1 {best:.3f})")
+            print(f"  -> saved best (key AP {best:.3f})")
+            since_improve = 0
+        else:
+            since_improve += 1
+            if since_improve >= args.patience:
+                print(f"early stop: no val improvement for {args.patience} epochs")
+                break
 
     if wb is not None:
         wb.summary["best_key_f1"] = best; wb.finish()
