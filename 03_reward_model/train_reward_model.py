@@ -40,19 +40,50 @@ from dataset import HoloAssistClips, class_balance, SyntheticProvider
 def build_encoder(kind: str, device: str):
     if kind == "stub":
         return StubEncoder(out_dim=512).to(device)
-    # try real R3M; wrap so it accepts our [N,3,H,W] in [0,1] and preprocesses.
+
+    from reward_model import VisualEncoder
+
+    if kind == "dinov2":
+        # Easy, robust frozen encoder via torch.hub (no r3m dependency hell).
+        try:
+            net = torch.hub.load("facebookresearch/dinov2", "dinov2_vits14")
+        except Exception as e:  # noqa: BLE001
+            print(f"[warn] dinov2 load failed ({e!r}); using StubEncoder.")
+            return StubEncoder(out_dim=512).to(device)
+        net.eval()
+        for p in net.parameters():
+            p.requires_grad_(False)
+
+        class _DINO(VisualEncoder):
+            def __init__(self):
+                super().__init__()
+                self.net = net
+                self.out_dim = 384          # dinov2_vits14 embedding dim
+
+            @torch.no_grad()
+            def forward(self, images):       # [N,3,H,W] in [0,1]
+                # DINOv2 wants 14-divisible size; 224 works. ImageNet norm.
+                x = F.interpolate(images, size=(224, 224), mode="bilinear",
+                                  align_corners=False)
+                mean = torch.tensor([0.485, 0.456, 0.406], device=x.device).view(1, 3, 1, 1)
+                std = torch.tensor([0.229, 0.224, 0.225], device=x.device).view(1, 3, 1, 1)
+                x = (x - mean) / std
+                return self.net(x)           # [N, 384] CLS embedding
+
+        return _DINO().to(device)
+
+    # kind == "r3m": try real R3M; fall back to stub if it fails to import.
     try:
         from r3m import load_r3m
     except Exception as e:  # noqa: BLE001
         print(f"[warn] r3m import failed ({e!r}); falling back to StubEncoder.")
+        print("       tip: use --encoder dinov2 for an easy frozen encoder.")
         return StubEncoder(out_dim=512).to(device)
 
     net = load_r3m("resnet18")
     net.eval()
     for p in net.parameters():
         p.requires_grad_(False)
-
-    from reward_model import VisualEncoder
 
     class _R3M(VisualEncoder):
         def __init__(self):
@@ -99,7 +130,7 @@ def evaluate(model, loader, device, thr=0.5):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="/workspace/holoassist")
-    ap.add_argument("--encoder", choices=["r3m", "stub"], default="r3m")
+    ap.add_argument("--encoder", choices=["r3m", "dinov2", "stub"], default="dinov2")
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--clip-len", type=int, default=60)
     ap.add_argument("--batch-size", type=int, default=8)
@@ -107,6 +138,7 @@ def main():
     ap.add_argument("--W", type=int, default=224)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--val-frac", type=float, default=0.2)
+    ap.add_argument("--num-workers", type=int, default=2)
     ap.add_argument("--out", default="runs/reward_v1")
     ap.add_argument("--dry-run", action="store_true",
                     help="use SyntheticProvider (no real data) to test the loop")
@@ -155,9 +187,10 @@ def main():
           f"({len(sessions)-n_val} / {n_val} sessions)")
 
     train_dl = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True,
-                          num_workers=4, drop_last=True)
+                          num_workers=args.num_workers, drop_last=True,
+                          persistent_workers=args.num_workers > 0)
     val_dl = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False,
-                        num_workers=2)
+                        num_workers=max(1, args.num_workers // 2))
 
     # ---- class weights from the FULL label set ----
     frac = class_balance(ds)

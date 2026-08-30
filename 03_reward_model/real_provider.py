@@ -48,35 +48,44 @@ def session_dir(root: str, session_name: str) -> str:
 
 
 # ----------------------------------------------------------------------
-# Video -> frames at TARGET_HZ
+# Video -> frames at TARGET_HZ  (decode only the requested clip window)
 # ----------------------------------------------------------------------
-@lru_cache(maxsize=8)
-def _decode_video_10hz(mp4_path: str, out_h: int, out_w: int):
-    """Decode the whole mp4, resample to TARGET_HZ by timestamp.
-    Returns a uint8 numpy array [T, H, W, 3]. Cached per file (few big videos)."""
-    import av  # PyAV
-    container = av.open(mp4_path)
-    stream = container.streams.video[0]
-    frames = []
-    times = []
-    for frame in container.decode(stream):
-        t = float(frame.pts * stream.time_base) if frame.pts is not None else None
-        img = frame.to_ndarray(format="rgb24")   # [H,W,3] uint8
-        frames.append(img)
-        times.append(t if t is not None else len(frames) / (float(stream.average_rate or 30)))
-    container.close()
-    if not frames:
-        return np.zeros((0, out_h, out_w, 3), np.uint8)
-    times = np.array(times)
-    dur = times[-1] if times[-1] and times[-1] > 0 else len(frames) / 30.0
-    T = max(1, int(round(dur * TARGET_HZ)))
-    # nearest-frame resample onto the 10 Hz grid
-    grid = (np.arange(T) / TARGET_HZ)
-    idx = np.searchsorted(times, grid).clip(0, len(frames) - 1)
+@lru_cache(maxsize=64)
+def _video_meta(mp4_path: str):
+    """Cheap metadata only (fps, frame count) — never caches pixels."""
     import cv2
-    out = np.empty((T, out_h, out_w, 3), np.uint8)
-    for i, j in enumerate(idx):
-        out[i] = cv2.resize(frames[j], (out_w, out_h))
+    cap = cv2.VideoCapture(mp4_path)
+    fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+    nframes = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+    cap.release()
+    return fps, nframes
+
+
+def _decode_clip(mp4_path: str, f0: int, f1: int, out_h: int, out_w: int):
+    """Decode ONLY 10 Hz frames [f0, f1) from the mp4 (memory-light).
+    Seeks to the source frame for f0, reads contiguously, subsamples to 10 Hz,
+    resizes to (out_h, out_w). Returns uint8 [f1-f0, H, W, 3]."""
+    import cv2
+    fps, _ = _video_meta(mp4_path)
+    T = f1 - f0
+    src0 = int(round(f0 / TARGET_HZ * fps))
+    n_src = max(T, int(round(T / TARGET_HZ * fps)))   # contiguous src frames to read
+    cap = cv2.VideoCapture(mp4_path)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, max(0, src0))
+    buf = []
+    for _ in range(n_src):
+        ok, fr = cap.read()
+        if not ok:
+            break
+        buf.append(fr)                                # BGR
+    cap.release()
+    out = np.zeros((T, out_h, out_w, 3), np.uint8)
+    if buf:
+        # subsample the contiguous src frames down to T output frames
+        idx = np.linspace(0, len(buf) - 1, T).round().astype(int)
+        for i, j in enumerate(idx):
+            rgb = cv2.cvtColor(buf[j], cv2.COLOR_BGR2RGB)
+            out[i] = cv2.resize(rgb, (out_w, out_h))
     return out
 
 
@@ -109,45 +118,29 @@ def parse_hand_line(line: str) -> np.ndarray:
     return xyz.reshape(-1).astype(np.float32)     # [78]
 
 
-@lru_cache(maxsize=8)
-def _load_hand_10hz(hands_dir: str, n_frames: int):
-    """Load Left+Right sync files, produce [n_frames, HAND_DIM].
-    The _sync files are already aligned to RGB frames, so row i ~ frame i; we
-    still resample by index onto the TARGET_HZ grid length n_frames."""
+@lru_cache(maxsize=32)
+def _load_hand_full(hands_dir: str):
+    """Load Left+Right sync files once -> [N_rows, HAND_DIM] (cached; small).
+    Row i ~ source frame i (files are synced to RGB)."""
     def load_one(path):
         if not os.path.exists(path):
             return None
-        rows = []
-        with open(path) as f:
-            for ln in f:
-                v = parse_hand_line(ln)
-                if v.size:
-                    rows.append(v)
-        if not rows:
-            return None
-        # pad/trim each row to a common width
-        w = max(r.size for r in rows)
-        M = np.zeros((len(rows), w), np.float32)
-        for i, r in enumerate(rows):
-            M[i, :r.size] = r
-        return M
+        rows = [parse_hand_line(ln) for ln in open(path)]
+        rows = [r for r in rows if r.size == PER_HAND_DIM]
+        return np.stack(rows) if rows else None
 
     L = load_one(os.path.join(hands_dir, "Left_sync.txt"))
     R = load_one(os.path.join(hands_dir, "Right_sync.txt"))
-    # combine available hands; if one missing, zero-fill
-    mats = [m for m in (L, R) if m is not None]
-    if not mats:
-        return np.zeros((n_frames, HAND_DIM), np.float32)
-    # align lengths by index-resample to n_frames
-    def resample(M):
-        src = np.linspace(0, M.shape[0] - 1, n_frames).round().astype(int)
-        return M[src]
-    combined = np.concatenate([resample(m) for m in mats], axis=1)  # [n_frames, sumW]
-    # fix to HAND_DIM (trim/pad)
-    out = np.zeros((n_frames, HAND_DIM), np.float32)
-    k = min(HAND_DIM, combined.shape[1])
-    out[:, :k] = combined[:, :k]
-    return out
+    parts = []
+    n = max((m.shape[0] for m in (L, R) if m is not None), default=0)
+    for m in (L, R):
+        if m is None:
+            parts.append(np.zeros((n, PER_HAND_DIM), np.float32))
+        else:
+            parts.append(m if m.shape[0] == n else m[:n])
+    if not parts or n == 0:
+        return np.zeros((1, HAND_DIM), np.float32)
+    return np.concatenate(parts, axis=1).astype(np.float32)   # [N, 156]
 
 
 # ----------------------------------------------------------------------
@@ -166,22 +159,18 @@ class RealProvider:
 
     def frames(self, session_name: str, f0: int, f1: int) -> torch.Tensor:
         mp4, _ = self._paths(session_name)
-        vid = _decode_video_10hz(mp4, self.H, self.W)      # [T,H,W,3] uint8
-        clip = vid[f0:f1]
-        if clip.shape[0] < (f1 - f0):                       # pad short tail
-            pad = np.zeros((f1 - f0 - clip.shape[0], self.H, self.W, 3), np.uint8)
-            clip = np.concatenate([clip, pad], 0)
+        clip = _decode_clip(mp4, f0, f1, self.H, self.W)     # [T,H,W,3] uint8
         t = torch.from_numpy(clip).float().permute(0, 3, 1, 2) / 255.0  # [T,3,H,W]
         return t
 
     def hand(self, session_name: str, f0: int, f1: int) -> torch.Tensor:
-        mp4, hands = self._paths(session_name)
-        vid = _decode_video_10hz(mp4, self.H, self.W)
-        h = _load_hand_10hz(hands, vid.shape[0])            # [T,HAND_DIM]
-        clip = h[f0:f1]
-        if clip.shape[0] < (f1 - f0):
-            clip = np.concatenate(
-                [clip, np.zeros((f1 - f0 - clip.shape[0], HAND_DIM), np.float32)], 0)
+        _, hands = self._paths(session_name)
+        full = _load_hand_full(hands)                        # [N, 156] at ~src fps
+        fps, _ = _video_meta(self._paths(session_name)[0])
+        # map 10 Hz clip indices [f0,f1) to hand rows (rows ~ source frames)
+        src = (np.arange(f0, f1) / TARGET_HZ * fps).round().astype(int)
+        src = np.clip(src, 0, full.shape[0] - 1)
+        clip = full[src]                                     # [T, 156]
         return torch.from_numpy(clip)
 
 
