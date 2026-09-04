@@ -41,6 +41,13 @@ git clone https://github.com/Lifelong-Robot-Learning/LIBERO.git
 pip install -e LIBERO
 pip install -r experiments/robot/libero/libero_requirements.txt
 ```
+> **Known gotcha — `import libero` fails after install.** LIBERO's `libero/`
+> folder has no `__init__.py` (PEP-420 namespace package); modern setuptools does
+> a "strict" editable install that hides the top-level import. Fix:
+> ```bash
+> pip install -e LIBERO --config-settings editable_mode=compat
+> ```
+> This drops LIBERO onto the path via a `.pth` file. Verify: `python -c "import libero; print('ok')"`.
 
 ## Step 4 — RUN a working VLA on LIBERO (the milestone)
 This downloads the released LIBERO checkpoint and runs the robot in the sim:
