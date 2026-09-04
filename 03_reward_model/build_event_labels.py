@@ -29,6 +29,7 @@ Run:
 import argparse
 import json
 import os
+import re
 
 import numpy as np
 
@@ -40,6 +41,13 @@ RATE_HZ = 10
 EVENT_NAMES = ["contact", "grasp", "release", "failure", "recovery"]
 RECOVERY_WINDOW_S = 0.5   # mark +/- this around a transition onset
 FAILURE_WINDOW_S = 0.5
+
+# PHYSICAL failure only: a drop/slip/fall (visually detectable, robot-relevant).
+# 89% of "Wrong Action" labels are procedural (wrong order/part) with NO visual
+# signature -> we EXCLUDE those and keep only physical failures, matched via the
+# verb ('drop') or the explanation text.
+PHYSICAL_FAIL_RE = re.compile(r"drop|slip|fall|fell|lost|slipp", re.IGNORECASE)
+PHYSICAL_FAIL_VERBS = {"drop"}
 
 # verb -> event bit(s)
 GRASP_VERBS = {"grab", "pick", "hold", "grasp", "grip", "pick_up"}
@@ -91,6 +99,7 @@ def build_labels(vid):
         f0, f1 = frame(s), frame(en)
         verb = str(at.get("Verb", "")).lower().strip()
         corr = str(at.get("Action Correctness", ""))
+        expl = str(at.get("Incorrect Action Explanation", ""))
 
         # ---- state events: fill the whole segment ----
         if verb in GRASP_VERBS:
@@ -100,8 +109,12 @@ def build_labels(vid):
         if verb in RELEASE_VERBS:
             e[f0:f1 + 1, idx["release"]] = 1.0
 
-        # ---- transition events: mark a window around the segment start ----
-        if corr.startswith("Wrong Action"):
+        # ---- transition events: PHYSICAL failure only (drop/slip) ----
+        is_physical_fail = (
+            corr.startswith("Wrong Action")
+            and (verb in PHYSICAL_FAIL_VERBS or bool(PHYSICAL_FAIL_RE.search(expl)))
+        )
+        if is_physical_fail:
             w = int(FAILURE_WINDOW_S * RATE_HZ)
             e[max(0, f0 - w): f0 + w + 1, idx["failure"]] = 1.0
             if "corrected by student" in corr:
