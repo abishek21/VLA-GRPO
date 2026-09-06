@@ -1,0 +1,50 @@
+name: build-simplevla-image
+
+# Builds the SimpleVLA-RL + OpenVLA-OFT + LIBERO image on GitHub's runners
+# (no local machine / GPU needed) and pushes it to GHCR.
+#
+# One-time: after first push, make the package PUBLIC so RunPod can pull it:
+#   GitHub -> your profile -> Packages -> simplevla-rl-libero -> Package settings.
+#
+# Trigger: manually (Actions tab -> Run workflow) or on push to the Dockerfile.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "05_forgetting_study/Dockerfile"
+      - ".github/workflows/build-simplevla-image.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free up disk (image is large)
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android \
+            /opt/hostedtoolcache /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
+          sudo docker image prune -af || true
+          df -h
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push (amd64)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./05_forgetting_study
+          file: ./05_forgetting_study/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/simplevla-rl-libero:cu124

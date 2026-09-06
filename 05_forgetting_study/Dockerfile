@@ -1,0 +1,97 @@
+# SimpleVLA-RL + OpenVLA-OFT + LIBERO — RunPod custom template
+#
+# Purpose: reproducible env for the "skill interference / catastrophic forgetting"
+# study. Provides SimpleVLA-RL's veRL-based RL + eval stack on LIBERO.
+#
+# Build on ANY machine (no GPU needed to build; CUDA kernels run at runtime).
+# On Apple Silicon you MUST target amd64:  docker buildx build --platform linux/amd64 ...
+# Built for free on GitHub Actions -> GHCR (see the workflow).
+#
+# WHY THIS BASE: SimpleVLA-RL/veRL 0.2.x pins **torch 2.4.0 + cu124** (their SETUP
+# warns newer torch breaks veRL). The pytorch official image ships exactly that,
+# uses CONDA python (so pip works -> avoids the PEP 668 "externally-managed"
+# error from Debian system python), and is a -devel image (has nvcc for
+# flash-attn).
+
+FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-devel
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    MUJOCO_GL=egl \
+    PYOPENGL_PLATFORM=egl \
+    TOKENIZERS_PARALLELISM=false \
+    HF_HOME=/workspace/.cache/huggingface \
+    MAX_JOBS=4 \
+    PYTHONUNBUFFERED=1
+
+# ---------------------------------------------------------------------------
+# 1) System libs: build tools + EGL/GL dispatch libs for headless MuJoCo render.
+# ---------------------------------------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git build-essential cmake \
+        libglvnd0 libglvnd-dev libegl1 libegl1-mesa-dev libgl1 libgles2 \
+        libglib2.0-0 libosmesa6 ffmpeg wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip setuptools wheel
+
+# Their required layout: verl / openvla-oft / LIBERO / SimpleVLA-RL as siblings.
+WORKDIR /opt
+
+# ---------------------------------------------------------------------------
+# 2) veRL 0.2.x — the RL backbone. Keep the torch 2.4 already in the base.
+# ---------------------------------------------------------------------------
+RUN git clone -b v0.2.x https://github.com/volcengine/verl.git /opt/verl && \
+    cd /opt/verl && \
+    sed -i 's/^torch==.*/# torch pin removed (base provides 2.4.0)/' requirements.txt 2>/dev/null || true && \
+    pip install -e .
+
+# ---------------------------------------------------------------------------
+# 3) OpenVLA-OFT — drop its torch pins (keep base torch 2.4), install, flash-attn.
+#    NOTE: flash-attn compiles CUDA kernels; slow on CI. If the CI build OOMs on
+#    this step, comment it out and install flash-attn at runtime on the GPU.
+# ---------------------------------------------------------------------------
+RUN git clone https://github.com/moojink/openvla-oft.git /opt/openvla-oft && \
+    cd /opt/openvla-oft && \
+    sed -i 's/^    "torch==2.2.0",/    # "torch==2.2.0",/' pyproject.toml && \
+    sed -i 's/^    "torchvision==0.17.0",/    # "torchvision==0.17.0",/' pyproject.toml && \
+    sed -i 's/^    "torchaudio==2.2.0",/    # "torchaudio==2.2.0",/' pyproject.toml && \
+    pip install -e .
+RUN pip install packaging ninja && \
+    (pip install flash-attn --no-build-isolation || \
+     echo "WARN: flash-attn build failed at image time; install at runtime on GPU")
+
+# ---------------------------------------------------------------------------
+# 4) LIBERO — compat editable install (namespace pkg) + reqs + version pins.
+# ---------------------------------------------------------------------------
+RUN git clone https://github.com/Lifelong-Robot-Learning/LIBERO.git /opt/LIBERO && \
+    pip install -e /opt/LIBERO --config-settings editable_mode=compat && \
+    pip install -r /opt/openvla-oft/experiments/robot/libero/libero_requirements.txt && \
+    pip install "numpy==1.26.4" "numba==0.59.1" "llvmlite==0.42.0" \
+                "opencv-python==4.10.0.84" "mujoco==2.3.2"
+
+# LIBERO patch for PyTorch weights_only default flip.
+RUN sed -i \
+    's/init_states = torch.load(init_states_path)/init_states = torch.load(init_states_path, weights_only=False)/' \
+    /opt/LIBERO/libero/libero/benchmark/__init__.py || true
+
+# Pre-create LIBERO config so it never shows the interactive prompt.
+RUN mkdir -p /root/.libero /workspace/libero_datasets && \
+    printf 'benchmark_root: %s\nbddl_files: %s/bddl_files\ninit_states: %s/init_files\ndatasets: /workspace/libero_datasets\nassets: %s/assets\n' \
+       /opt/LIBERO/libero/libero /opt/LIBERO/libero/libero /opt/LIBERO/libero/libero /opt/LIBERO/libero/libero \
+       > /root/.libero/config.yaml
+
+# ---------------------------------------------------------------------------
+# 5) SimpleVLA-RL itself.
+# ---------------------------------------------------------------------------
+RUN git clone https://github.com/PRIME-RL/SimpleVLA-RL.git /opt/SimpleVLA-RL
+
+# Build-time sanity import (no GPU needed).
+RUN python -c "import torch; print('torch', torch.__version__); \
+import robosuite, mujoco; from libero.libero import benchmark; \
+print('suites:', list(benchmark.get_benchmark_dict().keys()))" || \
+    echo "WARN: sanity import had issues; verify on the GPU pod."
+
+WORKDIR /opt/SimpleVLA-RL
+CMD ["/bin/bash"]
