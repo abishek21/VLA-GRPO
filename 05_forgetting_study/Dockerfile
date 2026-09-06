@@ -19,11 +19,14 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
     MUJOCO_GL=egl \
-    PYOPENGL_PLATFORM=egl \
     TOKENIZERS_PARALLELISM=false \
     HF_HOME=/workspace/.cache/huggingface \
     MAX_JOBS=4 \
     PYTHONUNBUFFERED=1
+# NOTE: do NOT hard-set PYOPENGL_PLATFORM=egl here — it blocks the osmesa
+# software-render fallback used when the pod lacks NVIDIA_DRIVER_CAPABILITIES
+# =graphics. Set MUJOCO_GL (egl or osmesa) at runtime instead. For fast GPU
+# rendering, run the pod with NVIDIA_DRIVER_CAPABILITIES=all.
 
 # ---------------------------------------------------------------------------
 # 1) System libs: build tools + EGL/GL dispatch libs for headless MuJoCo render.
