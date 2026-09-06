@@ -71,6 +71,11 @@ RUN git clone https://github.com/Lifelong-Robot-Learning/LIBERO.git /opt/LIBERO 
     pip install "numpy==1.26.4" "numba==0.59.1" "llvmlite==0.42.0" \
                 "opencv-python==4.10.0.84" "mujoco==2.3.2"
 
+# Pin huggingface-hub < 1.0: transformers requires >=0.19.3,<1.0. A later
+# `pip install -U huggingface_hub` (e.g. to speed checkpoint downloads) pulls
+# 1.30+ and breaks transformers. Pin so the image stays consistent.
+RUN pip install "huggingface-hub==0.25.2"
+
 # LIBERO patch for PyTorch weights_only default flip.
 RUN sed -i \
     's/init_states = torch.load(init_states_path)/init_states = torch.load(init_states_path, weights_only=False)/' \
@@ -94,4 +99,6 @@ print('suites:', list(benchmark.get_benchmark_dict().keys()))" || \
     echo "WARN: sanity import had issues; verify on the GPU pod."
 
 WORKDIR /opt/SimpleVLA-RL
-CMD ["/bin/bash"]
+# Keep the container alive on RunPod (a bare bash CMD exits immediately and the
+# pod's container stops). sleep infinity holds it open so SSH/web-terminal work.
+CMD ["sleep", "infinity"]
