@@ -84,6 +84,36 @@ RUN sed -i \
     's/init_states = torch.load(init_states_path)/init_states = torch.load(init_states_path, weights_only=False)/' \
     /opt/LIBERO/libero/libero/benchmark/__init__.py || true
 
+# Patch robosuite EGL: some RunPod hosts expose 0 EGL devices via
+# eglQueryDevicesEXT even though the GPU renders fine via EGL_DEFAULT_DISPLAY.
+# Add a fallback so robosuite (LIBERO) uses the working default-display path.
+RUN python - <<'PY'
+import re
+p="/opt/conda/lib/python3.11/site-packages/robosuite/renderers/context/egl_context.py"
+src=open(p).read()
+patch='''def create_initialized_egl_device_display(device_id=0):
+    """Creates an initialized EGL display directly on a device."""
+    from mujoco.egl import egl_ext as EGL
+    from OpenGL import error, EGL as _EGL
+    try:
+        all_devices = EGL.eglQueryDevicesEXT()
+    except Exception:
+        all_devices = []
+    if not all_devices:
+        display = _EGL.eglGetDisplay(_EGL.EGL_DEFAULT_DISPLAY)
+        if display != _EGL.EGL_NO_DISPLAY:
+            try:
+                if _EGL.eglInitialize(display, None, None):
+                    return display
+            except Exception:
+                pass
+        return _EGL.EGL_NO_DISPLAY
+'''
+src2=re.sub(r'def create_initialized_egl_device_display\(device_id=0\):\n    """Creates an initialized EGL display directly on a device\."""\n    all_devices = EGL\.eglQueryDevicesEXT\(\)\n', patch, src, count=1)
+open(p,"w").write(src2)
+print("robosuite EGL patched" if src2!=src else "WARN: robosuite EGL patch not applied")
+PY
+
 # Pre-create LIBERO config so it never shows the interactive prompt.
 RUN mkdir -p /root/.libero /workspace/libero_datasets && \
     printf 'benchmark_root: %s\nbddl_files: %s/bddl_files\ninit_states: %s/init_files\ndatasets: /workspace/libero_datasets\nassets: %s/assets\n' \
