@@ -32,7 +32,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # 1) System libs: build tools + EGL/GL dispatch libs for headless MuJoCo render.
 # ---------------------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git build-essential cmake \
+        git build-essential cmake tmux \
         libglvnd0 libglvnd-dev libegl1 libegl1-mesa-dev libgl1 libgles2 \
         libglib2.0-0 libosmesa6 ffmpeg wget ca-certificates \
     && rm -rf /var/lib/apt/lists/*
