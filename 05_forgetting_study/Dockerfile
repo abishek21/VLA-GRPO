@@ -37,6 +37,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libglib2.0-0 libosmesa6 ffmpeg wget ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# GLVND NVIDIA EGL vendor ICD. Without this, some RunPod pods ship the NVIDIA
+# EGL libs (libEGL_nvidia.so.0) but NO /usr/share/glvnd/egl_vendor.d/10_nvidia.json,
+# so libglvnd falls back to Mesa -> tries /dev/dri (permission denied for
+# non-root device group) -> "Cannot initialize a EGL device display ... does not
+# support the PLATFORM_DEVICE extension" -> LIBERO env init fails. Registering
+# the NVIDIA vendor makes headless EGL_PLATFORM_DEVICE rendering work.
+# Requires the pod to run with NVIDIA_DRIVER_CAPABILITIES including 'graphics'
+# (e.g. =all) so the NVIDIA userspace EGL libs are injected at container start.
+RUN mkdir -p /usr/share/glvnd/egl_vendor.d && \
+    printf '{\n    "file_format_version" : "1.0.0",\n    "ICD" : {\n        "library_path" : "libEGL_nvidia.so.0"\n    }\n}\n' \
+      > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+
 RUN pip install --upgrade pip setuptools wheel
 
 # Their required layout: verl / openvla-oft / LIBERO / SimpleVLA-RL as siblings.
@@ -124,6 +136,40 @@ RUN mkdir -p /root/.libero /workspace/libero_datasets && \
 # 5) SimpleVLA-RL itself.
 # ---------------------------------------------------------------------------
 RUN git clone https://github.com/PRIME-RL/SimpleVLA-RL.git /opt/SimpleVLA-RL
+
+# CRITICAL fix for single-process eval/RL: the LIBERO env workers in
+# rob_rollout.py are launched with the default multiprocessing start method
+# (fork). But _generate_minibatch_libero runs INSIDE the rollout worker, which
+# already holds a live CUDA context (the VLA is loaded on the GPU). Forking a
+# CUDA-initialized process poisons the child's GPU/EGL state, so robosuite's
+# eglCreateContext fails with EGL_BAD_ALLOC and the env never initializes
+# (endless "*** env initialization failed ***"). SimpleVLA-RL's own RoboTwin
+# path already uses spawn (pre_collect_twin2_seed.py) but the LIBERO path did
+# not. Switch the LIBERO env workers to a 'spawn' context so each child starts
+# as a fresh interpreter with no inherited CUDA/EGL state (like a standalone
+# process, which works). Also expose the real traceback from the swallowing
+# bare `except:` to aid future debugging.
+RUN python - <<'PY'
+p="/opt/SimpleVLA-RL/verl/workers/rollout/rob_rollout.py"
+s=open(p).read()
+orig=s
+if "_MP_SPAWN_CTX" not in s:
+    s=s.replace(
+        "from multiprocessing import Process, Queue",
+        "from multiprocessing import Process, Queue\nimport multiprocessing as _mp\n_MP_SPAWN_CTX = _mp.get_context('spawn')",
+        1)
+s=s.replace("            input_q = Queue()",  "            input_q = _MP_SPAWN_CTX.Queue()", 1)
+s=s.replace("            output_q = Queue()", "            output_q = _MP_SPAWN_CTX.Queue()", 1)
+s=s.replace("            p = Process(\n                target=env_worker,",
+            "            p = _MP_SPAWN_CTX.Process(\n                target=env_worker,", 1)
+needle='        except:\n            print(f"*** env initialization failed ***")'
+repl='        except Exception:\n            import traceback\n            print("*** env initialization failed ***", flush=True)\n            traceback.print_exc()'
+if needle in s:
+    s=s.replace(needle, repl, 1)
+open(p,"w").write(s)
+ok = ("_MP_SPAWN_CTX.Process(" in s) and (s.count("_MP_SPAWN_CTX.Queue()")>=2)
+print("rob_rollout spawn patch applied" if (ok and s!=orig) else "WARN: rob_rollout spawn patch NOT fully applied")
+PY
 
 # Build-time sanity import (no GPU needed).
 RUN python -c "import torch; print('torch', torch.__version__); \

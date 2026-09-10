@@ -1,5 +1,37 @@
 # SimpleVLA-RL LIBERO-Long Eval — Debugging Handoff
 
+> ## ✅ RESOLVED (2026-09-10) — eval runs end-to-end, baseline reproduced.
+> **Result:** LIBERO-Long suite average **88.0%** (100-episode smoke, 10 trials/task),
+> matching the ~86.5% target and validating the pipeline.
+>
+> **Three fixes (all now baked into `Dockerfile`):**
+> 1. **fork → spawn** for LIBERO env workers in `rob_rollout.py`. Original
+>    `EGL_BAD_ALLOC` root cause: `_generate_minibatch_libero` runs inside the
+>    rollout worker (already holds a CUDA context); forked env workers inherit
+>    poisoned GPU/EGL state so `eglCreateContext` fails. Spawn = clean child
+>    interpreter (like the standalone case that worked). NOT a GPU-count problem.
+> 2. **NVIDIA EGL ICD json** `/usr/share/glvnd/egl_vendor.d/10_nvidia.json`. Fresh
+>    pod had NVIDIA EGL libs but GLVND registry only had `50_mesa.json`, so EGL
+>    fell back to Mesa → `/dev/dri` permission denied → "does not support
+>    PLATFORM_DEVICE". Registering the NVIDIA vendor fixes headless rendering.
+> 3. **val batch divisibility**: `val_micro_batch_size` must divide
+>    `val_batch_size` (100→10, 500→10), else veRL `chunk()` mismatches tensor vs
+>    non-tensor split → `AssertionError: ... length 8 is not equal to batch size 9`.
+>
+> **Per-task baseline (smoke, n=10/task):** task_0..9 =
+> 90/100/80/80/90/100/80/**70**/90/100 %, **avg 88.0%**.
+> Weakest = **task_7** ("put both the alphabet soup and the cream cheese box in
+> the basket", 70%).
+>
+> **Run-time env:** `MUJOCO_GL=egl`, pod `NVIDIA_DRIVER_CAPABILITIES=all`,
+> `unset PYOPENGL_PLATFORM`. Full baseline TODO: 50/task (500 eps).
+>
+> _Original debugging notes below, kept for history._
+
+---
+
+# SimpleVLA-RL LIBERO-Long Eval — Debugging Handoff
+
 ## Goal
 Run SimpleVLA-RL's **eval-only** (`val_only=True`) on **LIBERO-Long (libero_10)** with the
 checkpoint `Haozhan72/Openvla-oft-SFT-libero10-trajall` (~86.5% baseline) to produce a

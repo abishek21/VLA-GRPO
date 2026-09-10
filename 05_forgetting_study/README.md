@@ -34,13 +34,39 @@ and produce a per-task table (not just suite average — forgetting is a
   ≈ **86.5%**; report ACTUAL numbers.
 
 ## Deliverable (Phase 1)
-| Task | Success Rate | # Eval Episodes |
-|------|-------------:|----------------:|
-| T1   |            … |              50 |
-| T2   |            … |              50 |
-| …    |            … |              50 |
-| T10  |            … |              50 |
-| **Average** | **… (target ~86.5%)** | 500 |
+
+**Status: ✅ pipeline reproduced.** Smoke run (n=10 trials/task, 100 episodes) on
+a single RTX A6000 gives suite average **88.0%** — matches the ~86.5% target.
+(Full 50/task = 500-episode run still TODO for publication-grade per-task numbers.)
+
+| Task | Success (smoke, n=10) | Full (n=50) |
+|------|----------------------:|------------:|
+| task_0 |  90% | … |
+| task_1 | 100% | … |
+| task_2 |  80% | … |
+| task_3 |  80% | … |
+| task_4 |  90% | … |
+| task_5 | 100% | … |
+| task_6 |  80% | … |
+| task_7 |  **70% (weakest)** | … |
+| task_8 |  90% | … |
+| task_9 | 100% | … |
+| **Average** | **88.0%** | **… (target ~86.5%)** |
+
+- **task_7** = _"put both the alphabet soup and the cream cheese box in the basket"_
+  — a two-object task, natural Phase 2 RL candidate.
+- To run the full baseline: `data.num_trials_per_task=50`, `data.val_batch_size=500`,
+  `actor_rollout_ref.rollout.val_micro_batch_size=10` (500/10 divides cleanly).
+
+### Fixes required to make eval run (now baked into `Dockerfile`)
+1. **fork → spawn** for LIBERO env workers in `rob_rollout.py` (fixes the original
+   `EGL_BAD_ALLOC` — forking after CUDA init poisons the child's GPU/EGL state).
+2. **NVIDIA EGL ICD** `/usr/share/glvnd/egl_vendor.d/10_nvidia.json` (else GLVND
+   falls back to Mesa → `/dev/dri` permission denied → no PLATFORM_DEVICE).
+3. **val batch divisibility** (`val_micro_batch_size` divides `val_batch_size`).
+
+Run-time env: `MUJOCO_GL=egl`, pod `NVIDIA_DRIVER_CAPABILITIES=all`,
+`unset PYOPENGL_PLATFORM`.
 
 ## Infra (one-time)
 - Docker image: `05_forgetting_study/Dockerfile` -> GHCR via
