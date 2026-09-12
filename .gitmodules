@@ -1,0 +1,3 @@
+[submodule "05_forgetting_study/SimpleVLA-RL"]
+	path = 05_forgetting_study/SimpleVLA-RL
+	url = https://github.com/abishek21/SimpleVLA-RL.git
