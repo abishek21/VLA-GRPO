@@ -23,6 +23,18 @@ export NVIDIA_DRIVER_CAPABILITIES=all
 unset PYOPENGL_PLATFORM
 export ROBOT_PLATFORM=LIBERO
 
+# --- Ray clean-start guard --------------------------------------------------
+# ray.init() starts a BACKGROUND cluster (raylet+GCS) separate from this driver.
+# If a previous run crashed (e.g. OOM), that cluster survives and still holds the
+# deterministic placement-group name "global_poolverl_group_...", so the next
+# launch reconnects and dies with "placement group already exists".
+# Tear any leftover cluster down + clear session state before starting.
+ray stop --force 2>/dev/null || true
+pkill -9 -f raylet 2>/dev/null || true
+pkill -9 -f gcs_server 2>/dev/null || true
+rm -rf /tmp/ray /tmp/ray_* /dev/shm/ray* 2>/dev/null || true
+sleep 4
+
 # --- W&B monitoring (optional) ---------------------------------------------
 # Do NOT hardcode your key here (this file is committed to a public repo).
 # On the pod, BEFORE launching, export it in your shell:
