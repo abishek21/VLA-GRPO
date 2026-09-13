@@ -23,6 +23,22 @@ export NVIDIA_DRIVER_CAPABILITIES=all
 unset PYOPENGL_PLATFORM
 export ROBOT_PLATFORM=LIBERO
 
+# --- W&B monitoring (optional) ---------------------------------------------
+# Do NOT hardcode your key here (this file is committed to a public repo).
+# On the pod, BEFORE launching, export it in your shell:
+#     export WANDB_API_KEY=xxxxxxxx
+# If WANDB_API_KEY is set, we log online; otherwise console-only.
+if [ -n "${WANDB_API_KEY:-}" ]; then
+  export WANDB_MODE=online
+  TRAINER_LOGGER="['console','wandb']"
+  WANDB_MODE_ARG=online
+  echo "[phaseA] W&B online logging ENABLED (project=$PROJECT_NAME)"
+else
+  TRAINER_LOGGER="['console']"
+  WANDB_MODE_ARG=offline
+  echo "[phaseA] W&B key not set -> console-only logging"
+fi
+
 PROJECT_NAME='VLA-MoE-LoRA'
 EXPERIMENT_NAME='phaseA_libero10_lora_r32_grpo'
 
@@ -102,7 +118,7 @@ HYDRA_FULL_ERROR=1 python -u -m verl.trainer.main_ppo \
     actor_rollout_ref.ref.log_prob_micro_batch_size=8 \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     algorithm.kl_ctrl.kl_coef=0.00 \
-    trainer.logger=['console'] \
+    trainer.logger=$TRAINER_LOGGER \
     trainer.project_name=$PROJECT_NAME \
     trainer.experiment_name=$EXPERIMENT_NAME \
     trainer.default_local_dir=$CKPT_PATH/$PROJECT_NAME/$EXPERIMENT_NAME \
@@ -116,5 +132,5 @@ HYDRA_FULL_ERROR=1 python -u -m verl.trainer.main_ppo \
     algorithm.adv_params.verifier_gamma=1.0 \
     algorithm.adv_params.reward_model_gamma=1.0 \
     trainer.runtime_env=$ALIGN_PATH \
-    trainer.wandb_mode=offline \
+    trainer.wandb_mode=$WANDB_MODE_ARG \
     trainer.val_before_train=True

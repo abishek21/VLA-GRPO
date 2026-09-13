@@ -76,6 +76,25 @@ cat > /opt/SimpleVLA-RL/align.json <<'JSON'
 JSON
 ```
 
+### 5b. (OPTIONAL) Enable W&B live monitoring
+The Ray rollout/trainer workers only inherit env vars from `align.json`, so the W&B
+key must go there too (do NOT commit it anywhere). Paste YOUR key on the pod:
+```bash
+export WANDB_API_KEY=xxxxxxxxxxxxxxxx        # <-- your key, pod shell only
+python - <<PY
+import json,os
+p="/opt/SimpleVLA-RL/align.json"; d=json.load(open(p))
+d["env_vars"]["WANDB_API_KEY"]=os.environ["WANDB_API_KEY"]
+d["env_vars"]["WANDB_MODE"]="online"
+json.dump(d,open(p,"w"),indent=2); print("align.json updated with W&B online")
+PY
+wandb login "$WANDB_API_KEY" 2>/dev/null || pip install -q wandb && wandb login "$WANDB_API_KEY"
+```
+The launch script auto-detects `WANDB_API_KEY` and switches to
+`trainer.logger=['console','wandb']`, `wandb_mode=online`. Dashboard: project
+**VLA-MoE-LoRA**, run **phaseA_libero10_lora_r32_grpo** at https://wandb.ai .
+⚠️ Rotate this key afterwards (it was shared in plaintext).
+
 ## 6. Launch in tmux (survives disconnects)
 ```bash
 mkdir -p /workspace/phaseA_out
@@ -83,7 +102,8 @@ cd /opt/SimpleVLA-RL
 tmux new -s phaseA -d
 tmux send-keys -t phaseA '
 cd /opt/SimpleVLA-RL
-export MUJOCO_GL=egl WANDB_MODE=disabled NVIDIA_DRIVER_CAPABILITIES=all
+export MUJOCO_GL=egl NVIDIA_DRIVER_CAPABILITIES=all
+export WANDB_API_KEY=xxxxxxxxxxxxxxxx        # <-- your key (omit for console-only)
 unset PYOPENGL_PLATFORM
 bash examples/run_phaseA_lora.sh 2>&1 | tee /workspace/phaseA_out/train_log.txt
 ' Enter
