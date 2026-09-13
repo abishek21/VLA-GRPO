@@ -474,3 +474,79 @@ class MoELoRALinear(nn.Module):
 ⚠️ **Novelty to verify:** has MoE-LoRA / model-merging been applied to **VLA across
 LIBERO suites**? (Check before committing.) Also verify all 4 `trajall` specialists
 share identical base/config/tokenizer (required for merging & shared base).
+
+---
+
+## 14. Phase A — single-suite GRPO + LoRA expert (LAUNCH RECIPE)
+
+**Goal:** train ONE LoRA expert with GRPO on ONE suite → produces one
+`lora_adapter/`. Proves the LoRA+GRPO path end-to-end; the atom for the 4-expert
+MoE. Config keys verified against `verl/trainer/config/ppo_trainer.yaml`.
+
+### 14.1 Pick the first expert
+Start with **libero_10 (Long)** — we already have the SFT baseline (88%) and the
+checkpoint, so we can sanity-check improvement. Warm-start:
+`SFT_MODEL_PATH=/workspace/ckpt_libero10_trajall`.
+
+### 14.2 Enable LoRA (config or CLI overrides)
+Defaults today: `lora_rank: 0` (off), `target_modules: all-linear`. Change to:
+```
+actor_rollout_ref.model.lora_rank=32
+actor_rollout_ref.model.lora_alpha=32
+# restrict experts to LLM control layers (share perception); PEFT matches name suffix
+actor_rollout_ref.model.target_modules=[q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj]
+```
+(If passing a list via Hydra CLI is fiddly, edit `ppo_trainer.yaml` directly.)
+LoRA save is automatic → `CKPT_PATH/.../lora_adapter/` + a merged full model
+(`fsdp_workers.py` L581–620).
+
+### 14.3 Single-suite / single-task data filter (fork edit, §10.1)
+For a *suite* expert on libero_10, the stock loop over all 10 tasks is what we want
+(the "suite" = its 10 tasks). For a *single-task* expert (forgetting study), add the
+`rl_task_ids` filter from §10.1. Phase A can start at **suite-level** (no code change)
+to derisk, then add the task filter.
+
+### 14.4 Disjoint train/eval init states (fork edit, §10.2) — IMPORTANT
+Currently train==valid trials (`range(0, num_trials_per_task)`). For a clean result:
+```python
+# rob_dataset.py LIBERO_Dataset._read_files_and_tokenize
+if self.train_val == "train":
+    trials_range = list(range(0, 40))      # 40 for RL rollouts
+elif self.train_val == "valid":
+    trials_range = list(range(40, 50))     # 10 held-out for eval
+```
+(Phase A can skip this to first confirm training runs; add before reporting numbers.)
+
+### 14.5 GRPO / RL knobs (match SimpleVLA recipe)
+```
+algorithm.adv_estimator=grpo
+algorithm.kl_ctrl.kl_coef=0.0            # SimpleVLA default (KL off)
+actor_rollout_ref.rollout.temperature=1.6
+data.n_samples=8                         # GRPO group size G
+data.filter_accuracy=True                # dynamic sampling
+data.accuracy_lower_bound=0.1
+data.accuracy_upper_bound=0.9
+actor_rollout_ref.actor.optim.lr=5e-6    # small; LoRA can tolerate a bit higher
+trainer.val_only=False
+trainer.test_freq=<eval every N steps>
+```
+NOTE: with LoRA, `param_offload`/`optimizer_offload` needs are lower; can likely fit
+**1–2 A40/A6000** (vs 8×A800 for full-param). Verify on a short run first.
+
+### 14.6 Sanity checks (in order)
+1. Launch prints `Applying LoRA to actor module` + `print_trainable_parameters()`
+   showing only LoRA params trainable (~millions, not 7B). ✅ LoRA active.
+2. First eval (step 0) ≈ SFT baseline (88% on libero_10). ✅ warm-start OK.
+3. After a few GRPO steps, train-suite success ↑ (RL improving). ✅ RL path works.
+4. `CKPT_PATH/.../lora_adapter/` written. ✅ expert persisted.
+
+### 14.7 KL-sweep variant (for the forgetting story, later)
+Re-run with `algorithm.kl_ctrl.kl_coef ∈ {0, small, large}` to trace gain↔retention.
+`kl_coef` re-enables the reference-KL term in `core_algos.py` (the knob SimpleVLA
+zeroed). This is also the cheapest "mitigation" baseline.
+
+### 14.8 After Phase A works
+- Repeat §14 for spatial / object / goal (each warm-started from its own `trajall`)
+  → 4 `lora_adapter/`s = the 4 experts.
+- Then Phase B: build `MoELoRALinear` (experts+router) and unit-test forward/backward.
+- Then Phase C: GRPO across suites with the MoE module + load-balancing loss.
