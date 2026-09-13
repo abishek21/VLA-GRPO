@@ -550,3 +550,83 @@ zeroed). This is also the cheapest "mitigation" baseline.
   → 4 `lora_adapter/`s = the 4 experts.
 - Then Phase B: build `MoELoRALinear` (experts+router) and unit-test forward/backward.
 - Then Phase C: GRPO across suites with the MoE module + load-balancing loss.
+
+---
+
+## 15. Novelty audit & publication strategy (2026-09) — READ BEFORE FRAMING
+
+### 15.1 Verdict: the MoE-LoRA / merge "generalist" idea is CROWDED
+A targeted arXiv/venue check found the core Part-2 concept already published, on
+LIBERO, some at CVPR 2026. **Do NOT headline "we built MoE-LoRA / merging for a
+multi-suite LIBERO generalist."** Direct collisions:
+- **MergeVLA** (2511.18810, CVPR 2026) — cross-skill **model merging** → generalist
+  VLA; diagnoses why naive merge fails (LoRA adapters diverge; action-expert
+  inter-block deps); fixes with sparse task-masked LoRA + **test-time task router**.
+  LIBERO/RoboTwin/real. ≈ our merge + MoE-router plan.
+- **CORAL** (2603.09298) — freeze backbone, **one LoRA expert per task** + manager
+  that **routes instructions** to experts; beats joint training. LIBERO. ≈ our
+  multi-adapter/oracle-router.
+- **HiMoE-VLA** (2512.05693) — hierarchical MoE **generalist**, negative→positive
+  transfer, **98% LIBERO**.
+- **MoIRA** (2507.01843) — modular instruction routing over LoRA experts (π0/gr00t),
+  LIBERO Spatial+Goal.
+- Plus a saturated MoE-VLA cluster: AdaMoE, DriveMoE, FedVLA(ICCV25), ForceVLA,
+  MoLe-VLA, PhaseLoRA, VLA-Pro, LoRA-SP, WIZARD(weight-space LoRA gen), etc.
+
+### 15.2 Threats to the "forgetting" angle too
+- **Simple Recipe Works** (2603.11653, **RLC 2026; best paper ICRA'26 RL4IL**;
+  **UT-Austin = LIBERO authors**): naive **Seq-FT + LoRA + on-policy RL** shows
+  **little/no forgetting**, beats fancy CRL. Attributes robustness to
+  *pretrained model + LoRA (PEFT) + on-policy RL* synergy. → they *predict* that
+  removing LoRA (full-param) may bring forgetting back, so our angle is
+  **complementary/confirmatory, not a scoop**.
+- **AEGIS** (2604.16067) — orthogonal **gradient projection** to prevent VLA
+  forgetting = our "hero" projection idea, already done.
+- **CrossVLA** (2605.21854) — LoRA/DoRA post-training across **all 4 LIBERO suites**.
+
+### 15.3 Key regime facts (so framing stays accurate)
+- The crowded MoE/merge papers build experts by **SFT/imitation**; we'd build them by
+  **GRPO (RL) specialization** — a genuinely *different* expert-creation regime, but
+  likely only a **workshop-tier** delta (method itself is taken).
+- **SimpleVLA recipe = SFT warm-start THEN pure outcome-reward GRPO** (no demos in
+  the RL loop; KL removed, β=0). RL can't start from ~0% (needs SFT prior).
+
+### 15.4 The most defensible (still modest) whitespace
+1. **"LoRA hides the tax":** the no-forgetting results use **LoRA/continual**; test
+   whether **full-parameter, KL-free, single-task GRPO** (SimpleVLA's actual recipe)
+   forgets where LoRA/KL don't → *reconciling* Simple-Recipe-Works & SimpleVLA.
+2. **Benchmark hygiene:** LIBERO RL path uses **train == eval init states** (§10.2);
+   a corrected disjoint-split NBT audit could change reported conclusions.
+3. **Mechanism:** action-token distribution drift / "pushcut" overwriting a skill.
+All three are **incremental / workshop-tier**, not main-track headliners.
+
+### 15.5 Publication reality (honest tiers)
+- Main-track first-author (NeurIPS/CoRL/ICRA/CVPR) = the RS currency; **hard** here.
+- **Workshop paper** (CoRL/NeurIPS/ICLR/ICRA) = realistic, named-venue line. Good for
+  Research Engineer / Applied / MTS. (Simple-Recipe-Works itself won an ICRA-workshop
+  best paper — that tier.)
+- **arXiv preprint + reproducible repo + merged/(open) OSS PR** = bankable now,
+  independent of peer review.
+
+### 15.6 Decision (user, 2026-09)
+Proceed to **build the MoE-LoRA + GRPO across suites** anyway — primarily for
+**learning the large-scale post-training stack** (veRL/GRPO/Ray/FSDP/LoRA) and to
+produce an **arXiv preprint + repo** for the resume; submit to workshops later.
+Framing rule: **do NOT overclaim novelty**; position as a focused empirical study
+that **cites MergeVLA/CORAL/Simple-Recipe-Works** and uses MoE-LoRA/merging as
+**baselines**, with the diagnostic (LoRA-hides-tax / split-hygiene / mechanism) as
+the honest contribution.
+
+### 15.7 Licensing / attribution (Apache-2.0)
+SimpleVLA-RL & veRL are Apache-2.0 → OK to build on in our own repo if we keep
+`LICENSE` + headers, note modifications, and credit upstream (fork submodule already
+does this). Checkpoint (`Haozhan72/...`) + LLaMA-2 weights have their own licenses —
+fine for research; check before any commercial use.
+
+### 15.8 Routing clarification (two orthogonal axes — recorded to avoid re-confusion)
+- **Axis 1 (composition):** experts trained *separately* (inference-time compose) vs
+  *jointly* (trainable MoE).
+- **Axis 2 (routing):** oracle (known suite) / heuristic (embedding sim) / learned.
+- Inference-time composition does NOT force oracle: you can train a **separate**
+  learned router over frozen experts. **User's goal = true joint MoE** (experts+router
+  co-trained via GRPO, any instruction, no manual switch) = the hard/ambitious path.
